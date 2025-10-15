@@ -1,21 +1,23 @@
 "use client";
-export default function Test() {
+import { useEffect, useState } from "react";
+
+export default function Home() {
+  const [message, setMessage] = useState("Loading...");
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/test")
+      .then((res) => res.json())
+      .then((data) => setMessage(data.message))
+      .catch((err) => {
+        console.error("Error fetching backend:", err);
+        setMessage("Error connecting to backend");
+      });
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 text-gray-800 p-6">
-      <div className="bg-white rounded-2xl shadow-md p-8 max-w-md text-center">
-        <h1 className="text-4xl font-bold text-emerald-600 mb-3">
-          Hello from Test.jsx 👋
-        </h1>
-        <p className="text-gray-600">
-          If you can see this styled text, Tailwind and JSX are working perfectly!
-        </p>
-        <button
-          onClick={() => alert("Nice! It’s all working.")}
-          className="mt-6 px-6 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all"
-        >
-          Test Button
-        </button>
-      </div>
-    </div>
-  )
+    <main className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-3xl font-bold mb-4">StudBuds Connection Test</h1>
+      <p>{message}</p>
+    </main>
+  );
 }

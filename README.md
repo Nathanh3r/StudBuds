@@ -78,15 +78,13 @@ studbuds/
 Make sure you have the following installed:
 - **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js)
-- **MongoDB** (local) or **MongoDB Atlas** (cloud) - [Get started](https://www.mongodb.com/cloud/atlas/register)
-  - OR **PostgreSQL** if using SQL - [Download here](https://www.postgresql.org/download/)
-- **Git** - [Download here](https://git-scm.com/)
+- **MongoDB** - [Get started](https://www.mongodb.com/cloud/atlas/register)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/studbuds.git
+   git clone https://github.com/Nathanh3r/StudBuds.git
    cd studbuds
    ```
 
@@ -102,6 +100,41 @@ Make sure you have the following installed:
    npm install
    ```
 
+### Environment Variables
+
+#### Backend Configuration
+
+Create a `.env` file in the `backend/` directory:
+
+```env
+# Server Configuration
+PORT=5001
+NODE_ENV=development
+
+# Database - MongoDB Atlas (TEAM: Use the shared connection string)
+MONGODB_URI=mongodb+srv://studbuds_admin:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/studbuds?retryWrites=true&w=majority
+
+# JWT Secret (TEAM: Use the shared secret key)
+JWT_SECRET=your_super_secret_jwt_key_make_it_long_and_random_12345
+
+# JWT Expiration
+JWT_EXPIRE=7d
+
+# CORS Origin (frontend URL)
+CORS_ORIGIN=http://localhost:3000
+```
+
+#### Frontend Configuration
+
+Create a `.env` file in the `frontend/` directory:
+
+```env
+# Backend API URL
+NEXT_PUBLIC_API_URL=http://localhost:5001/api
+```
+
+**Note:** We use port **5001** to match the backend port.
+
 ### Running the Application
 
 You need to run both frontend and backend simultaneously.
@@ -111,7 +144,15 @@ You need to run both frontend and backend simultaneously.
 cd backend
 npm run dev
 ```
-Backend will run on **http://localhost:5000**
+Backend will run on **http://localhost:5001**
+
+You should see:
+```
+🚀 Server running on port 5001
+📍 http://localhost:5001
+✅ MongoDB Connected: cluster0-xxxxx.mongodb.net
+📊 Database: studbuds
+```
 
 #### Terminal 2 - Frontend
 ```bash
@@ -124,7 +165,8 @@ Frontend will run on **http://localhost:3000**
 
 1. Open your browser to **http://localhost:3000**
 2. You should see the StudBuds homepage/login page
-3. Backend API health check: **http://localhost:5000/api/health** (should return OK)
+3. Backend API health check: **http://localhost:5001/api/health** (should return OK)
+4. Database test: **http://localhost:5001/api/test-db** (should show "connected")
 
 ## 📝 Available Scripts
 
@@ -133,7 +175,6 @@ Frontend will run on **http://localhost:3000**
 ```bash
 npm run dev          # Run server with nodemon (auto-restart on changes)
 npm start           # Run server in production mode
-npm run seed        # Seed database with sample data (if implemented)
 ```
 
 ### Frontend
@@ -183,16 +224,49 @@ GET    /api/messages/:userId        # Get messages with user (protected)
 POST   /api/messages                # Send message (protected)
 ```
 
-**Note:** (protected) means the endpoint requires a valid JWT token in the Authorization header:
-```
-Authorization: Bearer <your_jwt_token>
-```
-
 ## 🧪 Testing
 
 ### Testing Backend Endpoints
 
 Use **Postman**, **Thunder Client** (VS Code extension), or **curl**:
+
+**Example: Register a user**
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@ucr.edu",
+    "password": "password123",
+    "major": "Computer Science"
+  }'
+```
+
+**Example: Login**
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@ucr.edu",
+    "password": "password123"
+  }'
+```
+
+**Example: Access protected route**
+```bash
+curl http://localhost:5000/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+### Viewing Database in MongoDB Atlas
+
+1. Go to https://cloud.mongodb.com
+2. Log in with team credentials (ask team lead)
+3. Click **Database** → **Browse Collections**
+4. Select **studbuds** database
+5. View collections: users, classes, posts, messages
+
+You can see all data being created/modified in real-time!
 
 ## 📚 Learning Resources
 
@@ -212,16 +286,6 @@ Use **Postman**, **Thunder Client** (VS Code extension), or **curl**:
 - **Official Documentation**: https://tailwindcss.com/docs
   - Search for what you need (e.g., "tailwind padding")
 - **Tailwind in 100 Seconds**: https://www.youtube.com/watch?v=mr15Xzb1Ook
-- **Common Classes Quick Reference**:
-  ```
-  Layout: flex, grid, gap-4, items-center, justify-between
-  Spacing: p-4 (padding), m-4 (margin), mt-2 (margin-top)
-  Sizing: w-full, h-screen, max-w-md
-  Text: text-lg, font-bold, text-center, text-gray-700
-  Colors: bg-blue-500, text-white, border-gray-300
-  Borders: border, rounded-lg, shadow-md
-  Hover: hover:bg-blue-600, transition
-  ```
 
 #### Backend (Node.js/Express)
 - **Express.js Crash Course** (35 min): https://www.youtube.com/watch?v=SccSCuHhOw0
@@ -315,5 +379,3 @@ This project is part of a university course assignment.
 - **Aryav Nagar** - [GitHub Profile](#)
 - **Nathan Herrera** - [GitHub Profile](#)
 - **Shaun Mansoor** - [GitHub Profile](#)
-
----

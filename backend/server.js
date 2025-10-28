@@ -1,24 +1,40 @@
+require("dotenv").config(); // Load .env variables
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+
+// Import your routes and middleware
+const userRoutes = require("./routes/user.routes"); // Make sure path matches your project
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 4000;
 
-app.use(cors({ origin: "http://localhost:3000" }));
+// Middleware
+app.use(cors({ origin: "http://localhost:3000" })); // Frontend origin
+app.use(express.json()); // Parse JSON request bodies
 
-// Middleware to parse JSON
-app.use(express.json());
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-// Example route
+// Test routes
 app.get("/", (req, res) => {
   res.send("Hello from Express backend!");
 });
 
-//test route
 app.get("/api/test", (req, res) => {
   res.json({ message: "Backend is connected!" });
 });
 
+// Mount user routes
+app.use("/api/users", userRoutes);
+
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

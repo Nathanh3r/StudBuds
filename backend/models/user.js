@@ -1,66 +1,76 @@
-class User {
-  #name;
-  #email
-  #password;
-  #major;
-  #bio;
-  #classlist = [];
-  #friends = [];
-  constructor(name, email, password, major, bio) {
-    this.#name = name;
-    this.#email = email;
-    this.#password = password;
-    this.#major = major;
-    this.#bio = bio;
-  }
-  SetName(name) {
-    this.#name = name;
-  }
-  SetEmail(email) {
-    this.#email = email;
-  }
-  SetPassword(password) {
-    this.#password = password;
-  }
-  SetMajor(major) {
-    this.#major = major;
-  }
-  SetBio(bio) {
-    this.#bio = bio;
-  }
-  GetName(name) {
-    return this.#name;
-  }
-  GetEmail(email) {
-    return this.#email;
-  }
-  GetPassword(password) {
-    return this.#password;
-  }
-  GetMajor(major) {
-    return this.#major;
-  }
-  GetBio() {
-    return this.#bio;
-  }
-  Setclasslist(classes) {
-    this.#classlist.push(classes);
-  }
-  Setfriends(friend) {
-    this.#friends.push(friend);
-  }
-}
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-//const mongoose = require("mongoose");
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return /\.edu$/.test(value);
+        },
+        message: "Email must be a valid .edu email address"
+      }
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+      select: false 
+    },
+    major: {
+      type: String,
+      required: true
+    },
+    bio: {
+      type: String,
+      default: ""
+    },
+    classes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Class"
+      }
+    ],
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+      }
+    ],
+    isVerified: {
+      type: Boolean,
+      default: false
+    }
+  },
+  { timestamps: true }
+);
 
-//const UserSchema = new mongoose.Schema({
-  //name: { type: String, required: true },
-  //email: { type: String, required: true, unique: true },
-  //password: { type: String, required: true },
-  //createdAt: { type: Date, default: Date.now }
-//});
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
 
-//module.exports = mongoose.model("User", UserSchema);
+userSchema.methods.comparePassword = async function (inputPassword) {
+  return bcrypt.compare(inputPassword, this.password);
+};
 
-student = User(shaun, smans, Shaunm$1, CSBA, Student);
-log.console(student.GetBio);
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model("User", userSchema);
+export default User;

@@ -6,8 +6,8 @@ import {
   updateProfile,
   addFriend,
   enrollClass,
-} from "../controllers/user.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
+} from "../controllers/userController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 router.post("/register", registerUser);

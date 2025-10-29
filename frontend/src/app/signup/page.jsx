@@ -29,7 +29,7 @@ export default function SignupPage() {
     setError("");
     setSuccess("");
 
-    // --- Client validation ---
+    // --- Client-side validation ---
     if (!form.email.endsWith(".edu")) {
       return setError("Please use a .edu email address");
     }
@@ -49,7 +49,6 @@ export default function SignupPage() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || "Registration failed");
 
       setSuccess("Account created successfully! Redirecting to login...");
@@ -63,7 +62,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex bg-white">
-      {/* Left side gradient (optional for design consistency) */}
+      {/* Left side gradient section */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-purple-700 via-indigo-600 to-blue-500 text-white items-center justify-center p-10">
         <div className="max-w-md text-center">
           <h1 className="text-4xl font-bold mb-4">Join StudBuds</h1>
@@ -80,9 +79,13 @@ export default function SignupPage() {
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 bg-white">
         <div className="w-full max-w-sm">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Sign Up</h2>
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
               <input
                 type="text"
                 name="name"
@@ -93,8 +96,11 @@ export default function SignupPage() {
               />
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email (.edu only)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email (.edu only)
+              </label>
               <input
                 type="email"
                 name="email"
@@ -105,8 +111,11 @@ export default function SignupPage() {
               />
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
               <input
                 type="password"
                 name="password"
@@ -117,8 +126,11 @@ export default function SignupPage() {
               />
             </div>
 
+            {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -129,8 +141,11 @@ export default function SignupPage() {
               />
             </div>
 
+            {/* Major */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Major</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Major
+              </label>
               <input
                 type="text"
                 name="major"
@@ -140,8 +155,11 @@ export default function SignupPage() {
               />
             </div>
 
+            {/* Bio */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bio (optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Bio (optional)
+              </label>
               <textarea
                 name="bio"
                 rows="3"
@@ -151,14 +169,22 @@ export default function SignupPage() {
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-            {success && <p className="text-green-600 text-sm font-medium">{success}</p>}
+            {/* Error / Success messages */}
+            {error && (
+              <p className="text-red-500 text-sm font-medium">{error}</p>
+            )}
+            {success && (
+              <p className="text-green-600 text-sm font-medium">{success}</p>
+            )}
 
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
               className={`w-full bg-indigo-600 text-white py-2 rounded-lg transition-all ${
-                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-indigo-700"
+                loading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-indigo-700"
               }`}
             >
               {loading ? "Creating Account..." : "Sign Up"}
@@ -167,7 +193,10 @@ export default function SignupPage() {
 
           <p className="text-center text-sm text-gray-600 mt-4">
             Already have an account?{" "}
-            <Link href="/login" className="text-indigo-600 font-semibold hover:underline">
+            <Link
+              href="/login"
+              className="text-indigo-600 font-semibold hover:underline"
+            >
               Log In
             </Link>
           </p>

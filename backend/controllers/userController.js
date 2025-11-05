@@ -29,7 +29,7 @@ export const registerUser = async (req, res) => {
     await user.save();
 
     const token = generateToken(user._id);
-    const safeUser = await User.findById(user._id).select("-password");
+    const safeUser = await User.findById(user._id).select("-password");   //create user with proper error checks
 
     return res.status(201).json({ token, user: safeUser });
   } catch (err) {
@@ -50,7 +50,7 @@ export const loginUser = async (req, res) => {
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = generateToken(user._id);
-    const safeUser = await User.findById(user._id).select("-password");
+    const safeUser = await User.findById(user._id).select("-password");    //login user and display proper errors as necessary
 
     return res.json({ token, user: safeUser });
   } catch (err) {
@@ -81,7 +81,7 @@ export const updateProfile = async (req, res) => {
     if (major !== undefined) user.major = major;
 
     await user.save();
-    const safeUser = await User.findById(userId).select("-password");
+    const safeUser = await User.findById(userId).select("-password"); //update profile with proper error handling
     return res.json({ user: safeUser });
   } catch (err) {
     console.error("updateProfile error:", err);
@@ -105,7 +105,7 @@ export const addFriend = async (req, res) => {
       await me.save();
     }
 
-    const safeUser = await User.findById(meId).select("-password");
+    const safeUser = await User.findById(meId).select("-password"); // add another user as friend with proper error handling
     return res.json({ user: safeUser });
   } catch (err) {
     console.error("addFriend error:", err);
@@ -128,6 +128,6 @@ export const enrollClass = async (req, res) => {
     return res.json({ user: safeUser });
   } catch (err) {
     console.error("enrollClass error:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" }); //enroll class with proper error handling
   }
 };

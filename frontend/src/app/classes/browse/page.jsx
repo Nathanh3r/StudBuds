@@ -1,43 +1,54 @@
-import Link from "next/link";
+"use client";
+import { useEffect, useState } from "react";
+import ClassCard from "../../../components/ClassCard";
+import {
+  ALL_CLASSES,
+  getJoinedIds,
+  joinClass,
+  leaveClass,
+} from "../../../lib/classesClient";
+
+
 
 export default function BrowseClassesPage() {
-  const mockClasses = [
-    { id: "c1", name: "CS 166 — Databases", code: "CS166-F24-01", members: 28 },
-    { id: "c2", name: "CS 180 — Software Eng", code: "CS180-F24-01", members: 35 },
-    { id: "c3", name: "PHYS 40C — Waves/EM", code: "PHYS40C-F24-01", members: 22 },
-  ];
+  const [joined, setJoined] = useState(new Set());
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    setJoined(getJoinedIds());
+  }, []);
+
+  const handleJoin = (id) => setJoined(new Set(joinClass(id)));
+  const handleLeave = (id) => setJoined(new Set(leaveClass(id)));
+
+  const filtered = ALL_CLASSES.filter(c =>
+    c.name.toLowerCase().includes(q.toLowerCase()) || c.code.toLowerCase().includes(q.toLowerCase())
+  );
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold">Browse Classes</h1>
-          <a
-            href="/classes"
-            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-          >
-            Back to My Classes
-          </a>
+          <a href="/classes" className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">Back to My Classes</a>
         </div>
 
+        <input
+          className="mt-4 w-full rounded-xl border px-4 py-2"
+          placeholder="Search by name or code..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mockClasses.map((cls) => (
-            <div key={cls.id} className="rounded-2xl border p-4 bg-white shadow-sm">
-              <h2 className="text-lg font-semibold">{cls.name}</h2>
-              <p className="text-sm text-gray-500">{cls.code}</p>
-              <p className="text-sm text-gray-600 mt-2">{cls.members} members</p>
-              <div className="mt-4 flex gap-2">
-                <button className="rounded-lg bg-blue-600 text-white px-3 py-2 text-sm hover:bg-blue-700">
-                  Join
-                </button>
-                <Link
-                  href={`/classes/${cls.id}`}
-                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                >
-                  View
-                </Link>
-              </div>
-            </div>
+          {filtered.map((cls) => (
+            <ClassCard
+              key={cls.id}
+              cls={cls}
+              joined={joined.has(cls.id)}
+              onJoin={handleJoin}
+              onLeave={handleLeave}
+            />
           ))}
         </div>
       </div>

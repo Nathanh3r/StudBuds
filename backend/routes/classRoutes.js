@@ -1,16 +1,16 @@
-// routes/classRoutes.js
-const express = require("express");
-const router = express.Router();
-const { protect } = require("../middleware/auth");
-const { createPost, getClassPosts } = require("../controllers/postController");
-const {
+import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
+import { createPost, getClassPosts } from "../controllers/postController.js";
+import {
   createClass,
   getAllClasses,
   getClassById,
   joinClass,
   leaveClass,
   getClassMembers,
-} = require("../controllers/classController");
+} from "../controllers/classController.js";
+
+const router = express.Router();
 
 // CREATE CLASS
 router.post("/", protect, createClass);
@@ -33,7 +33,7 @@ router.get("/:id/members", protect, getClassMembers);
 // CREATE A POST IN A CLASS
 router.post("/:id/posts", protect, createPost);
 
-// GET A POSST FROM A CLASS
+// GET POSTS FROM A CLASS
 router.get("/:id/posts", protect, getClassPosts);
 
-module.exports = router;
+export default router;

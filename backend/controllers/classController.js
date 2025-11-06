@@ -1,12 +1,12 @@
 // controllers/classController.js
-const Class = require("../models/Class");
-const User = require("../models/User");
-const mongoose = require("mongoose");
+import Class from "../models/Class.js";
+import User from "../models/User.js";
+import mongoose from "mongoose";
 
 // @desc    Create a new class
 // @route   POST /api/classes
 // @access  Private
-exports.createClass = async (req, res) => {
+export const createClass = async (req, res) => {
   try {
     const { name, code, description } = req.body;
 
@@ -66,7 +66,7 @@ exports.createClass = async (req, res) => {
 // @desc    Get all classes
 // @route   GET /api/classes
 // @access  Private
-exports.getAllClasses = async (req, res) => {
+export const getAllClasses = async (req, res) => {
   try {
     const classes = await Class.find()
       .sort({ createdAt: -1 }) // Most recent first
@@ -91,7 +91,7 @@ exports.getAllClasses = async (req, res) => {
 // @desc    Get single class details
 // @route   GET /api/classes/:id
 // @access  Private
-exports.getClassById = async (req, res) => {
+export const getClassById = async (req, res) => {
   try {
     const classData = await Class.findById(req.params.id).populate(
       "members",
@@ -129,7 +129,7 @@ exports.getClassById = async (req, res) => {
 // @desc    Join a class
 // @route   POST /api/classes/:id/join
 // @access  Private
-exports.joinClass = async (req, res) => {
+export const joinClass = async (req, res) => {
   try {
     const classData = await Class.findById(req.params.id);
 
@@ -174,7 +174,7 @@ exports.joinClass = async (req, res) => {
 // @desc    Leave a class
 // @route   POST /api/classes/:id/leave
 // @access  Private
-exports.leaveClass = async (req, res) => {
+export const leaveClass = async (req, res) => {
   try {
     const classData = await Class.findById(req.params.id);
 
@@ -221,7 +221,7 @@ exports.leaveClass = async (req, res) => {
 // @desc    Get all members of a class
 // @route   GET /api/classes/:id/members
 // @access  Private
-exports.getClassMembers = async (req, res) => {
+export const getClassMembers = async (req, res) => {
   try {
     const classData = await Class.findById(req.params.id).populate(
       "members",

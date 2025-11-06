@@ -1,11 +1,11 @@
 // controllers/postController.js
-const Post = require("../models/Post");
-const Class = require("../models/Class");
+import Post from "../models/Post.js";
+import Class from "../models/Class.js";
 
 // @desc    Create a post in a class
 // @route   POST /api/classes/:id/posts
 // @access  Private
-exports.createPost = async (req, res) => {
+export const createPost = async (req, res) => {
   try {
     const { content } = req.body;
     const classId = req.params.id;
@@ -60,7 +60,7 @@ exports.createPost = async (req, res) => {
 // @desc    Get all posts for a class
 // @route   GET /api/classes/:id/posts
 // @access  Private
-exports.getClassPosts = async (req, res) => {
+export const getClassPosts = async (req, res) => {
   try {
     const classId = req.params.id;
 

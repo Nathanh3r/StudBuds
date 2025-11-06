@@ -1,5 +1,5 @@
-// models/class.js
-const mongoose = require("mongoose");
+// models/Class.js
+import mongoose from "mongoose";
 
 const classSchema = new mongoose.Schema({
   name: {
@@ -50,4 +50,4 @@ classSchema.virtual("memberCount").get(function () {
 classSchema.set("toJSON", { virtuals: true });
 classSchema.set("toObject", { virtuals: true });
 
-module.exports = mongoose.model("Class", classSchema);
+export default mongoose.model("Class", classSchema);

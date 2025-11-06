@@ -1,5 +1,5 @@
 // models/Post.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
   classId: {
@@ -27,4 +27,4 @@ const postSchema = new mongoose.Schema({
 // Index for faster queries
 postSchema.index({ classId: 1, createdAt: -1 });
 
-module.exports = mongoose.model("Post", postSchema);
+export default mongoose.model("Post", postSchema);

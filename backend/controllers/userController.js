@@ -1,89 +1,160 @@
 // controllers/userController.js
 
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const generateToken = require("../utils/genToken");
+import bcrypt from "bcrypt";
+import User from "../models/User.js";
+import { generateToken } from "../utils/genToken.js";
 
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-
-    // Validation
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        message: "Please provide name, email, and password",
-      });
+    const { name, email, password, major, bio } = req.body;
+    if (!name || !email || !password || !major) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+    if (!/\.edu$/i.test(email)) {
+      return res.status(400).json({ message: "Email must end with .edu" });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(409).json({ message: "Email already in use" });
+    }
 
-    // Create user
-    const user = await User.create({
+    const user = new User({
       name,
-      email,
-      password: hashedPassword,
+      email: email.toLowerCase(),
+      password,
+      major,
+      bio: bio || "",
     });
 
-    if (user) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
-      });
-    }
-  } catch (error) {
-    console.error("Error registering user:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    await user.save();
+
+    const token = generateToken(user._id);
+    const safeUser = await User.findById(user._id).select("-password");
+
+    return res.status(201).json({ token, user: safeUser });
+  } catch (err) {
+    console.error("registerUser error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
 // @desc    Login user
 // @route   POST /api/users/login
 // @access  Public
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ message: "Missing email or password" });
 
-    // Check for user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      "+password"
+    );
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(401).json({ message: "Invalid email or password" });
-    }
-  } catch (error) {
-    console.error("Error logging in:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
+
+    const token = generateToken(user._id);
+    const safeUser = await User.findById(user._id).select("-password");
+
+    return res.json({ token, user: safeUser });
+  } catch (err) {
+    console.error("loginUser error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-// @desc    Get current user
+// @desc    Get current user profile
 // @route   GET /api/users/me
 // @access  Private
-exports.getMe = async (req, res) => {
+export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
-  } catch (error) {
-    console.error("Error getting user:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    // req.user set by protect middleware
+    return res.json({ user: req.user });
+  } catch (err) {
+    console.error("getMe error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/users/update
+// @access  Private
+export const updateProfile = async (req, res) => {
+  try {
+    const { bio, major } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (bio !== undefined) user.bio = bio;
+    if (major !== undefined) user.major = major;
+
+    await user.save();
+    const safeUser = await User.findById(userId).select("-password");
+    return res.json({ user: safeUser });
+  } catch (err) {
+    console.error("updateProfile error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Add a friend
+// @route   POST /api/users/add-friend/:id
+// @access  Private
+export const addFriend = async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const meId = req.user._id.toString();
+
+    if (targetId === meId)
+      return res
+        .status(400)
+        .json({ message: "Cannot add yourself as a friend" });
+
+    const me = await User.findById(meId);
+    const target = await User.findById(targetId);
+    if (!target)
+      return res.status(404).json({ message: "Target user not found" });
+
+    if (!me.friends.map(String).includes(targetId)) {
+      me.friends.push(target._id);
+      await me.save();
+    }
+
+    const safeUser = await User.findById(meId).select("-password");
+    return res.json({ user: safeUser });
+  } catch (err) {
+    console.error("addFriend error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Enroll in a class
+// @route   POST /api/users/enroll-class/:id
+// @access  Private
+export const enrollClass = async (req, res) => {
+  try {
+    const classId = req.params.id;
+    const meId = req.user._id;
+
+    const user = await User.findById(meId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.classes.map(String).includes(classId)) {
+      user.classes.push(classId);
+      await user.save();
+    }
+    const safeUser = await User.findById(meId).select("-password");
+    return res.json({ user: safeUser });
+  } catch (err) {
+    console.error("enrollClass error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };

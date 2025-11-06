@@ -1,19 +1,32 @@
-// routes/userRoutes.js
-
-const express = require("express");
-const router = express.Router();
-const { protect } = require("../middleware/auth");
-const {
+import express from "express";
+import {
   registerUser,
   loginUser,
   getMe,
-} = require("../controllers/userController");
+  updateProfile,
+  addFriend,
+  enrollClass,
+} from "../controllers/userController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
-// Register and Login (Public)
+const router = express.Router();
+
+// REGISTER NEW USER
 router.post("/register", registerUser);
+
+// LOGIN USER
 router.post("/login", loginUser);
 
-// Get current user (Protected)
+// GET CURRENT USER PROFILE
 router.get("/me", protect, getMe);
 
-module.exports = router;
+// UPDATE USER PROFILE
+router.put("/update", protect, updateProfile);
+
+// ADD FRIEND
+router.post("/add-friend/:id", protect, addFriend);
+
+// ENROLL IN CLASS
+router.post("/enroll-class/:id", protect, enrollClass);
+
+export default router;

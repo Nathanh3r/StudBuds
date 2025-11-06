@@ -1,11 +1,10 @@
 // utils/generateToken.js
 
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
-  });
+export const generateToken = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("Missing JWT_SECRET in env");
+  }
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" }); //generates token
 };
-
-module.exports = generateToken;

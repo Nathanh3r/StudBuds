@@ -1,13 +1,15 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
-const classRoutes = require("./routes/classRoutes");
+// server.js
+import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import userRoutes from "./routes/userRoutes.js";
+import classRoutes from "./routes/classRoutes.js";
+const PORT = process.env.PORT || 4000;
 
+// Connect to DB
 const app = express();
-
-// Connect to database
 connectDB();
 
 // Middleware
@@ -33,8 +35,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/classes", classRoutes);
 
 // Start server
-const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`http://localhost:${PORT}`);
 });

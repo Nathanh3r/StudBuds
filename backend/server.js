@@ -6,6 +6,8 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js"
+
 const PORT = process.env.PORT || 4000;
 
 // Connect to DB
@@ -32,6 +34,7 @@ app.get("/api/health", (req, res) => {
 
 // API routes
 app.use("/api/users", userRoutes);
+app.use("/api/messages", messageRoutes);
 app.use("/api/classes", classRoutes);
 
 // Start server

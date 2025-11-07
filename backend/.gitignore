@@ -17,3 +17,7 @@ dist/
 
 # Test files
 testUsers.js
+
+
+.vscode/
+.editorconfig

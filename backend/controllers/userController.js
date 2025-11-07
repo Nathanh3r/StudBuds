@@ -1,7 +1,12 @@
+// controllers/userController.js
+
 import bcrypt from "bcrypt";
-import User from "../models/user.js";
+import User from "../models/User.js";
 import { generateToken } from "../utils/genToken.js";
 
+// @desc    Register a new user
+// @route   POST /api/users/register
+// @access  Public
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, major, bio } = req.body;
@@ -29,7 +34,7 @@ export const registerUser = async (req, res) => {
     await user.save();
 
     const token = generateToken(user._id);
-    const safeUser = await User.findById(user._id).select("-password");   //create user with proper error checks
+    const safeUser = await User.findById(user._id).select("-password");
 
     return res.status(201).json({ token, user: safeUser });
   } catch (err) {
@@ -38,19 +43,25 @@ export const registerUser = async (req, res) => {
   }
 };
 
+// @desc    Login user
+// @route   POST /api/users/login
+// @access  Public
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: "Missing email or password" });
+    if (!email || !password)
+      return res.status(400).json({ message: "Missing email or password" });
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      "+password"
+    );
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = generateToken(user._id);
-    const safeUser = await User.findById(user._id).select("-password");    //login user and display proper errors as necessary
+    const safeUser = await User.findById(user._id).select("-password");
 
     return res.json({ token, user: safeUser });
   } catch (err) {
@@ -59,6 +70,9 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// @desc    Get current user profile
+// @route   GET /api/users/me
+// @access  Private
 export const getMe = async (req, res) => {
   try {
     // req.user set by protect middleware
@@ -69,6 +83,9 @@ export const getMe = async (req, res) => {
   }
 };
 
+// @desc    Update user profile
+// @route   PUT /api/users/update
+// @access  Private
 export const updateProfile = async (req, res) => {
   try {
     const { bio, major } = req.body;
@@ -81,7 +98,7 @@ export const updateProfile = async (req, res) => {
     if (major !== undefined) user.major = major;
 
     await user.save();
-    const safeUser = await User.findById(userId).select("-password"); //update profile with proper error handling
+    const safeUser = await User.findById(userId).select("-password");
     return res.json({ user: safeUser });
   } catch (err) {
     console.error("updateProfile error:", err);
@@ -89,23 +106,30 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Add a friend
+// @route   POST /api/users/add-friend/:id
+// @access  Private
 export const addFriend = async (req, res) => {
   try {
     const targetId = req.params.id;
     const meId = req.user._id.toString();
 
-    if (targetId === meId) return res.status(400).json({ message: "Cannot add yourself as a friend" });
+    if (targetId === meId)
+      return res
+        .status(400)
+        .json({ message: "Cannot add yourself as a friend" });
 
     const me = await User.findById(meId);
     const target = await User.findById(targetId);
-    if (!target) return res.status(404).json({ message: "Target user not found" });
+    if (!target)
+      return res.status(404).json({ message: "Target user not found" });
 
     if (!me.friends.map(String).includes(targetId)) {
       me.friends.push(target._id);
       await me.save();
     }
 
-    const safeUser = await User.findById(meId).select("-password"); // add another user as friend with proper error handling
+    const safeUser = await User.findById(meId).select("-password");
     return res.json({ user: safeUser });
   } catch (err) {
     console.error("addFriend error:", err);
@@ -113,6 +137,9 @@ export const addFriend = async (req, res) => {
   }
 };
 
+// @desc    Enroll in a class
+// @route   POST /api/users/enroll-class/:id
+// @access  Private
 export const enrollClass = async (req, res) => {
   try {
     const classId = req.params.id;
@@ -128,6 +155,6 @@ export const enrollClass = async (req, res) => {
     return res.json({ user: safeUser });
   } catch (err) {
     console.error("enrollClass error:", err);
-    return res.status(500).json({ message: "Server error" }); //enroll class with proper error handling
+    return res.status(500).json({ message: "Server error" });
   }
 };

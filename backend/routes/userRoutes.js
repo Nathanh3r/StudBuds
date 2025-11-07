@@ -5,7 +5,10 @@ import {
   getMe,
   updateProfile,
   addFriend,
-  enrollClass,
+  removeFriend,
+  getFriends,
+  getUserProfile,
+  searchUsers,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -23,10 +26,19 @@ router.get("/me", protect, getMe);
 // UPDATE USER PROFILE
 router.put("/update", protect, updateProfile);
 
+// SEARCH USERS
+router.get("/search", protect, searchUsers);
+
+// GET ALL FRIENDS
+router.get("/friends", protect, getFriends);
+
 // ADD FRIEND
 router.post("/add-friend/:id", protect, addFriend);
 
-// ENROLL IN CLASS
-router.post("/enroll-class/:id", protect, enrollClass);
+// REMOVE FRIEND
+router.delete("/remove-friend/:id", protect, removeFriend);
+
+// GET SPECIFIC USER PROFILE
+router.get("/:id", protect, getUserProfile);
 
 export default router;

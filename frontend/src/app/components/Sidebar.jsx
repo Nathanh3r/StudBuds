@@ -13,8 +13,7 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
     { name: 'Discover', href: '/discover', icon: '🔍' },
-    { name: 'Study Groups', href: '/study-groups', icon: '👥' },
-    { name: 'Upcoming Events', href: '/events', icon: '📅' },
+    { name: 'Friends', href: '/friends', icon: '👥' },
     { name: 'Courses', href: '/courses', icon: '📚' },
     { name: 'Messages', href: '/messages', icon: '💬' },
     { name: 'Settings', href: '/settings', icon: '⚙️' },
@@ -28,8 +27,11 @@ export default function Sidebar() {
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
-      {/* User Profile Section */}
-      <div className={`border-b border-gray-200 transition-all duration-300 ${isCollapsed ? 'p-4' : 'p-6'}`}>
+      <Link 
+        href={user?._id ? `/profile/${user._id}` : '/dashboard'}
+        className={`border-b border-gray-200 transition-all duration-300 ${isCollapsed ? 'p-4' : 'p-6'} hover:bg-gray-50 cursor-pointer block`}
+        title={isCollapsed ? 'View your profile' : ''}
+      >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-white font-semibold text-lg">
@@ -43,7 +45,7 @@ export default function Sidebar() {
             </div>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Navigation Items */}
       <nav className="flex-1 p-4 overflow-y-auto">

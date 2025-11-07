@@ -137,24 +137,135 @@ export const addFriend = async (req, res) => {
   }
 };
 
-// @desc    Enroll in a class
-// @route   POST /api/users/enroll-class/:id
+// @desc    Get all friends with full details
+// @route   GET /api/users/friends
 // @access  Private
-export const enrollClass = async (req, res) => {
+export const getFriends = async (req, res) => {
   try {
-    const classId = req.params.id;
-    const meId = req.user._id;
+    const userId = req.user._id;
 
-    const user = await User.findById(meId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (!user.classes.map(String).includes(classId)) {
-      user.classes.push(classId);
-      await user.save();
+    const user = await User.findById(userId).populate(
+      "friends",
+      "name email major bio"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    const safeUser = await User.findById(meId).select("-password");
-    return res.json({ user: safeUser });
+
+    return res.json({
+      friends: user.friends,
+      count: user.friends.length,
+    });
   } catch (err) {
-    console.error("enrollClass error:", err);
+    console.error("getFriends error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Get a specific user's public profile
+// @route   GET /api/users/:id
+// @access  Private
+export const getUserProfile = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findById(userId).select(
+      "name email major bio classes friends"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if current user is friends with this user
+    const currentUserId = req.user._id.toString();
+    const isFriend = user.friends.map(String).includes(currentUserId);
+
+    return res.json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        major: user.major,
+        bio: user.bio,
+        isFriend,
+        friendCount: user.friends.length,
+        classCount: user.classes.length,
+      },
+    });
+  } catch (err) {
+    console.error("getUserProfile error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Remove a friend
+// @route   DELETE /api/users/remove-friend/:id
+// @access  Private
+export const removeFriend = async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const meId = req.user._id.toString();
+
+    if (targetId === meId) {
+      return res
+        .status(400)
+        .json({ message: "Cannot remove yourself as a friend" });
+    }
+
+    const me = await User.findById(meId);
+    const target = await User.findById(targetId);
+
+    if (!target) {
+      return res.status(404).json({ message: "Target user not found" });
+    }
+
+    // Remove target from my friends list
+    me.friends = me.friends.filter((id) => id.toString() !== targetId);
+    await me.save();
+
+    // Remove me from target's friends list (mutual unfriend)
+    target.friends = target.friends.filter((id) => id.toString() !== meId);
+    await target.save();
+
+    const safeUser = await User.findById(meId).select("-password");
+    return res.json({
+      message: "Friend removed successfully",
+      user: safeUser,
+    });
+  } catch (err) {
+    console.error("removeFriend error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Search users by name or email
+// @route   GET /api/users/search?q=searchterm
+// @access  Private
+export const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const searchRegex = new RegExp(q.trim(), "i");
+
+    const users = await User.find({
+      $or: [{ name: searchRegex }, { email: searchRegex }],
+      _id: { $ne: req.user._id }, // Exclude current user
+    })
+      .select("name email major bio")
+      .limit(20); // Limit results
+
+    return res.json({
+      users,
+      count: users.length,
+    });
+  } catch (err) {
+    console.error("searchUsers error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };

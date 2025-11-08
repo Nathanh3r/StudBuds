@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ClassCard from "@/components/ClassCard";
-import { fetchClasses, joinClass, leaveClass } from "@/lib/classesApi";
+import ClassCard from "../../../components/ClassCard";
+import { fetchClasses, joinClass, leaveClass } from "../../../lib/classesApi";
+
 
 
 export default function BrowseClassesPage() {

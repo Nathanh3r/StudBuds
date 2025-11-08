@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchClasses, joinClass, leaveClass } from "@/lib/classesApi";
+import { fetchClasses, joinClass, leaveClass } from "../../lib/classesApi";
 // If you have a ready card component, keep this import.
 // Otherwise you can temporarily render a simple list as shown below.
 // import ClassCard from "@/src/components/ClassCard";

@@ -21,3 +21,5 @@ export async function leaveClass(id) {
   const data = await res.json();
   return data.class;
 }
+
+export default { fetchClasses, joinClass, leaveClass };

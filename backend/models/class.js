@@ -1,14 +1,53 @@
-const { Schema, model, Types } = require("mongoose");
+// models/Class.js
+import mongoose from "mongoose";
 
-const ClassSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    code: { type: String, required: true, unique: true },
-    description: { type: String, default: "" },
-    members: [{ type: Types.ObjectId, ref: "User" }], 
-    createdBy: { type: Types.ObjectId, ref: "User" },
+const classSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Class name is required"],
+    trim: true,
+    maxlength: [100, "Class name cannot exceed 100 characters"],
   },
-  { timestamps: true }
-);
+  code: {
+    type: String,
+    required: [true, "Class code is required"],
+    unique: true,
+    uppercase: true,
+    trim: true,
+    maxlength: [20, "Class code cannot exceed 20 characters"],
+  },
+  description: {
+    type: String,
+    maxlength: [500, "Description cannot exceed 500 characters"],
+    default: "",
+  },
+  members: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-module.exports = model("Class", ClassSchema, "classes"); 
+// Index on code field for fast lookups
+classSchema.index({ code: 1 });
+
+// Virtual for member count
+classSchema.virtual("memberCount").get(function () {
+  return this.members.length;
+});
+
+// Ensure virtuals are included in JSON
+classSchema.set("toJSON", { virtuals: true });
+classSchema.set("toObject", { virtuals: true });
+
+export default mongoose.model("Class", classSchema);

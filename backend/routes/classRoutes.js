@@ -1,15 +1,39 @@
-const express = require("express");
+import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
+import { createPost, getClassPosts } from "../controllers/postController.js";
+import {
+  createClass,
+  getAllClasses,
+  getClassById,
+  joinClass,
+  leaveClass,
+  getClassMembers,
+} from "../controllers/classController.js";
+
 const router = express.Router();
-const ctrl = require("../controllers/classController");
 
-// public for now
-router.get("/", ctrl.listClasses);
-router.get("/by-code/:code", ctrl.getClassByCode);
-router.get("/:id", ctrl.getClassById);
+// CREATE CLASS
+router.post("/", protect, createClass);
 
-// demo join/leave (no auth yet)
-router.post("/", ctrl.createClass);
-router.post("/:id/join", ctrl.joinClass);
-router.post("/:id/leave", ctrl.leaveClass);
+// GET ALL CLASSES
+router.get("/", protect, getAllClasses);
 
-module.exports = router;
+// GET SINGLE CLASS DETAILS
+router.get("/:id", protect, getClassById);
+
+// JOIN CLASS
+router.post("/:id/join", protect, joinClass);
+
+// LEAVE CLASS
+router.post("/:id/leave", protect, leaveClass);
+
+// GET CLASS MEMBERS
+router.get("/:id/members", protect, getClassMembers);
+
+// CREATE A POST IN A CLASS
+router.post("/:id/posts", protect, createPost);
+
+// GET POSTS FROM A CLASS
+router.get("/:id/posts", protect, getClassPosts);
+
+export default router;

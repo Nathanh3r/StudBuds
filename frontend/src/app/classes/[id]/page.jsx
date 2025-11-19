@@ -19,8 +19,6 @@ export default function CourseDetailPage() {
   const [classData, setClassData] = useState(null);
   const [posts, setPosts] = useState([]);
   const [members, setMembers] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,28 +66,6 @@ export default function CourseDetailPage() {
           });
           const membersData = await membersRes.json();
           if (membersRes.ok) setMembers(membersData.members || []);
-
-          // Mock data for announcements and events
-          setAnnouncements([
-            {
-              id: 1,
-              title: 'Midterm Exam Schedule',
-              content: 'The midterm exam will be held on November 15th. Review materials are now available.',
-              timestamp: '2 days ago',
-            },
-            {
-              id: 2,
-              title: 'New Reading Assignment',
-              content: 'Chapter 8: Virtual Memory - Due next Friday',
-              timestamp: '5 days ago',
-            },
-          ]);
-
-          setUpcomingEvents([
-            { id: 1, title: 'Midterm Exam', date: 'Nov 15, 2:00 PM', type: 'exam', color: 'red' },
-            { id: 2, title: 'Study Group', date: 'Nov 12, 7:00 PM', type: 'study', color: 'blue' },
-            { id: 3, title: 'Assignment Due', date: 'Nov 10, 11:59 PM', type: 'assignment', color: 'green' },
-          ]);
         }
       } else {
         setError(classData.message || 'Failed to load class');
@@ -101,6 +77,7 @@ export default function CourseDetailPage() {
       setLoading(false);
     }
   };
+
 
   const handleJoinClass = async () => {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -122,6 +99,7 @@ export default function CourseDetailPage() {
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
+    { id: 'sections', label: 'Sections' },
     { id: 'notes', label: 'Notes' },
     { id: 'study-feed', label: 'Study Feed' },
     { id: 'chat', label: 'Chat' },
@@ -158,197 +136,248 @@ export default function CourseDetailPage() {
 
   const isCurrentUserMember = classData.isCurrentUserMember;
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar />
+    return (
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Sidebar */}
+        <Sidebar />
 
-      {/* Main Content with dynamic left margin */}
-      <div
-        className={`flex-1 transition-all duration-300 ${
-          isCollapsed ? 'ml-20' : 'ml-64'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Course Header */}
-          <CourseHeader
-            code={classData.code}
-            name={classData.name}
-            term="Fall 2025"
-            instructor="Dr. Miller"
-            studentCount={classData.memberCount}
-          />
+        {/* Main Content with dynamic left margin */}
+        <div
+          className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'
+            }`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Course Header */}
+            <CourseHeader
+              code={classData.code}
+              name={classData.name}
+              term={classData.term}
+              instructor={classData.instructor.name}
+              studentCount={classData.memberCount}
+            />
 
-          {/* Show join prompt if not a member */}
-          {!isCurrentUserMember ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Join this class</h2>
-              <p className="text-gray-600 mb-6">
-                Join {classData.code} to access course materials, connect with classmates, and participate in discussions.
-              </p>
-              <button
-                onClick={handleJoinClass}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-lg transition"
-              >
-                Join {classData.code}
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Tabs - Scrollable on mobile */}
-              <div className="mb-6 border-b border-gray-200 overflow-x-auto">
-                <div className="flex gap-4 sm:gap-8 min-w-max sm:min-w-0">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`pb-3 px-1 font-medium transition relative whitespace-nowrap ${
-                        activeTab === tab.id
-                          ? 'text-indigo-600'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      {tab.label}
-                      {activeTab === tab.id && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"></div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+            {/* Show join prompt if not a member */}
+            {!isCurrentUserMember ? (
+              <div className="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Join this class</h2>
+                <p className="text-gray-600 mb-6">
+                  Join {classData.code} to access course materials, connect with classmates, and participate in discussions.
+                </p>
+                <button
+                  onClick={handleJoinClass}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-lg transition"
+                >
+                  Join {classData.code}
+                </button>
               </div>
+            ) : (
+              <>
+                {/* Tabs - Scrollable on mobile */}
+                <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+                  <div className="flex gap-4 sm:gap-8 min-w-max sm:min-w-0">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`pb-3 px-1 font-medium transition relative whitespace-nowrap ${activeTab === tab.id
+                            ? 'text-indigo-600'
+                            : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                      >
+                        {tab.label}
+                        {activeTab === tab.id && (
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"></div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              {/* Tab Content - Responsive grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                {/* Main Content Area */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Overview Tab */}
-                  {activeTab === 'overview' && (
-                    <>
-                      {/* Course Description */}
+                {/* Tab Content - Responsive grid */}
+                <div className="flex flex-col gap-6 lg:gap-8">
+                  {/* Main Content Area */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Overview Tab */}
+                    {activeTab === 'overview' && (
+                      <>
+                        {/* Course Description */}
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                          <h2 className="text-xl font-bold text-gray-900 mb-4">Course Description</h2>
+                          <p className="text-gray-700 leading-relaxed">
+                            {classData.description ||
+                              "This course covers fundamental concepts of operating systems including process management, memory management, file systems, and system security. Students will gain hands-on experience with Unix/Linux systems and learn about concurrent programming, synchronization, and distributed systems."}
+                          </p>
+                        </div>
+                        {/* Course Details */}
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                          <h2 className="text-xl font-bold text-gray-900 mb-4">Course Details</h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {classData.department && (
+                              <div>
+                                <span className="font-semibold text-gray-700">Department:</span>
+                                <span className="ml-2 text-gray-600">{classData.department}</span>
+                              </div>
+                            )}
+                            {classData.units && (
+                              <div>
+                                <span className="font-semibold text-gray-700">Units:</span>
+                                <span className="ml-2 text-gray-600">{classData.units}</span>
+                              </div>
+                            )}
+                            {classData.instructionalMethod && (
+                              <div>
+                                <span className="font-semibold text-gray-700">Format:</span>
+                                <span className="ml-2 text-gray-600">{classData.instructionalMethod}</span>
+                              </div>
+                            )}
+                            {classData.instructor && classData.instructor.email && (
+                              <div>
+                                <span className="font-semibold text-gray-700">Email:</span>
+                                <a
+                                  href={`mailto:${classData.instructor.email}`}
+                                  className="ml-2 text-indigo-600 hover:underline"
+                                >
+                                  {classData.instructor.email}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* Sections Tab */}
+                    {activeTab === 'sections' && (
                       <div className="bg-white rounded-xl shadow-sm p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Course Description</h2>
-                        <p className="text-gray-700 leading-relaxed">
-                          {classData.description || 
-                            "This course covers fundamental concepts of operating systems including process management, memory management, file systems, and system security. Students will gain hands-on experience with Unix/Linux systems and learn about concurrent programming, synchronization, and distributed systems."}
-                        </p>
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Course Sections</h2>
+                        {classData.sections && classData.sections.length > 0 ? (
+                          <div className="space-y-4">
+                            {classData.sections.map((section, idx) => (
+                              <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div>
+                                    <h3 className="font-semibold text-gray-900">
+                                      Section {section.sectionNumber}
+                                    </h3>
+                                    <p className="text-sm text-gray-600">{section.scheduleType}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {section.enrollment}/{section.maxEnrollment}
+                                    </div>
+                                    <div className="text-xs text-gray-500">enrolled</div>
+                                  </div>
+                                </div>
+                                {section.instructor && (
+                                  <p className="text-sm text-gray-700 mb-2">
+                                    <span className="font-medium">Instructor:</span> {section.instructor}
+                                  </p>
+                                )}
+                                {section.meetingTimes && section.meetingTimes.map((mt, i) => {
+                                  const isOnline = mt.location?.toLowerCase().includes("online");
+                                  return (
+                                    <div key={i} className="text-sm text-gray-600">
+                                      {mt.days && mt.days.length > 0 && (
+                                        <span className="mr-2">{mt.days.join(' ')}</span>
+                                      )}
+                                      {mt.startTime && mt.endTime && (
+                                        <span className="mr-2">{mt.startTime} - {mt.endTime}</span>
+                                      )}
+                                      {isOnline ? "Online" : mt.location}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500">No sections available.</p>
+                        )}
                       </div>
+                    )}
 
-                      {/* Recent Announcements */}
+                    {/* Notes Tab */}
+                    {activeTab === 'notes' && (
                       <div className="bg-white rounded-xl shadow-sm p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Announcements</h2>
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Course Notes</h2>
+                        <p className="text-gray-500">Notes feature coming soon...</p>
+                      </div>
+                    )}
+
+                    {/* Study Feed Tab */}
+                    {activeTab === 'study-feed' && (
+                      <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Study Feed</h2>
                         <div className="space-y-4">
-                          {announcements.map((announcement) => (
-                            <div key={announcement.id} className="bg-indigo-50 rounded-lg p-4">
-                              <h3 className="font-semibold text-gray-900 mb-2">{announcement.title}</h3>
-                              <p className="text-sm text-gray-700 mb-2">{announcement.content}</p>
-                              <p className="text-xs text-gray-500">{announcement.timestamp}</p>
+                          {posts.length === 0 ? (
+                            <p className="text-gray-500">No posts yet. Be the first to share!</p>
+                          ) : (
+                            posts.map((post) => (
+                              <div key={post._id} className="border-b border-gray-200 pb-4 last:border-0">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span className="text-white font-semibold">
+                                      {post.author.name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                      <span className="font-semibold text-gray-900">{post.author.name}</span>
+                                      <span className="text-sm text-gray-500">{post.author.major}</span>
+                                    </div>
+                                    <p className="text-gray-700 break-words">{post.content}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Chat Tab */}
+                    {activeTab === 'chat' && (
+                      <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Class Chat</h2>
+                        <p className="text-gray-500">Chat feature coming soon...</p>
+                      </div>
+                    )}
+
+                    {/* People Tab */}
+                    {activeTab === 'people' && (
+                      <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Class Members</h2>
+                        <div className="space-y-4">
+                          {members.map((member) => (
+                            <div key={member._id} className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition">
+                              <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white font-semibold text-lg">
+                                  {member.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-gray-900 truncate">{member.name}</h3>
+                                <p className="text-sm text-gray-600 truncate">{member.major}</p>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
-                    </>
-                  )}
+                    )}
 
-                  {/* Notes Tab */}
-                  {activeTab === 'notes' && (
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">Course Notes</h2>
-                      <p className="text-gray-500">Notes feature coming soon...</p>
-                    </div>
-                  )}
-
-                  {/* Study Feed Tab */}
-                  {activeTab === 'study-feed' && (
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">Study Feed</h2>
-                      <div className="space-y-4">
-                        {posts.length === 0 ? (
-                          <p className="text-gray-500">No posts yet. Be the first to share!</p>
-                        ) : (
-                          posts.map((post) => (
-                            <div key={post._id} className="border-b border-gray-200 pb-4 last:border-0">
-                              <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white font-semibold">
-                                    {post.author.name.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <span className="font-semibold text-gray-900">{post.author.name}</span>
-                                    <span className="text-sm text-gray-500">{post.author.major}</span>
-                                  </div>
-                                  <p className="text-gray-700 break-words">{post.content}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        )}
+                    {/* Study Groups Tab */}
+                    {activeTab === 'study-groups' && (
+                      <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Study Groups</h2>
+                        <p className="text-gray-500">Study groups feature coming soon...</p>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Chat Tab */}
-                  {activeTab === 'chat' && (
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">Class Chat</h2>
-                      <p className="text-gray-500">Chat feature coming soon...</p>
-                    </div>
-                  )}
-
-                  {/* People Tab */}
-                  {activeTab === 'people' && (
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">Class Members</h2>
-                      <div className="space-y-4">
-                        {members.map((member) => (
-                          <div key={member._id} className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition">
-                            <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-semibold text-lg">
-                                {member.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate">{member.name}</h3>
-                              <p className="text-sm text-gray-600 truncate">{member.major}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Study Groups Tab */}
-                  {activeTab === 'study-groups' && (
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                      <h2 className="text-xl font-bold text-gray-900 mb-4">Study Groups</h2>
-                      <p className="text-gray-500">Study groups feature coming soon...</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Sidebar - Upcoming Events */}
-                <div className="lg:col-span-1">
-                  <div className="bg-white rounded-xl shadow-sm p-6 lg:sticky lg:top-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming Events</h2>
-                    <div className="space-y-3">
-                      {upcomingEvents.map((event) => (
-                        <div key={event.id} className="flex items-start gap-3">
-                          <div className={`w-3 h-3 rounded-full bg-${event.color}-500 mt-1.5 flex-shrink-0`}></div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm truncate">{event.title}</p>
-                            <p className="text-xs text-gray-500">{event.date}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

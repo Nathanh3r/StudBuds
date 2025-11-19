@@ -21,3 +21,21 @@ testUsers.js
 
 .vscode/
 .editorconfig
+ucr_*.json
+*_202610*.json
+*_final.json
+final_studbuds_courses.json
+studbuds_courses*.json
+new_studbuds_courses.json
+course_descriptions.json
+
+# Backup Files
+backups/
+*.backup.json
+
+# Large Combined Data Files
+ucr_all_*.json
+ucr_all_subjects_*.json
+
+# Transform Output
+final_studbuds_courses.json

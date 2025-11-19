@@ -14,7 +14,7 @@ export default function Sidebar() {
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
     { name: 'Discover', href: '/discover', icon: '🔍' },
     { name: 'Friends', href: '/friends', icon: '👥' },
-    { name: 'Courses', href: '/courses', icon: '📚' },
+    { name: 'My Courses', href: '/my-courses', icon: '📚' },
     { name: 'Messages', href: '/messages', icon: '💬' },
     { name: 'Settings', href: '/settings', icon: '⚙️' },
   ];

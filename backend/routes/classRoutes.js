@@ -8,9 +8,13 @@ import {
   joinClass,
   leaveClass,
   getClassMembers,
+  searchClasses,
 } from "../controllers/classController.js";
 
 const router = express.Router();
+
+// SEARCH COURSES
+router.get("/search", protect, searchClasses);
 
 // CREATE CLASS
 router.post("/", protect, createClass);

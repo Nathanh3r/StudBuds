@@ -11,6 +11,13 @@ import {
   searchClasses,
 } from "../controllers/classController.js";
 
+import {
+  getStudyGroupsForClass,
+  createStudyGroup,
+  joinStudyGroup,
+  leaveStudyGroup,
+} from "../controllers/studyGroupController.js";
+
 const router = express.Router();
 
 // SEARCH COURSES
@@ -39,5 +46,12 @@ router.post("/:id/posts", protect, createPost);
 
 // GET POSTS FROM A CLASS
 router.get("/:id/posts", protect, getClassPosts);
+
+// STUDY GROUPS
+router.get("/:id/study-groups", protect, getStudyGroupsForClass);
+router.post("/:id/study-groups", protect, createStudyGroup);
+router.post("/:id/study-groups/:groupId/join", protect, joinStudyGroup);
+router.post("/:id/study-groups/:groupId/leave", protect, leaveStudyGroup);
+
 
 export default router;

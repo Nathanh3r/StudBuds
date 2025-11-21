@@ -114,4 +114,8 @@ classSchema.virtual("memberCount").get(function () {
 classSchema.set("toJSON", { virtuals: true });
 classSchema.set("toObject", { virtuals: true });
 
-export default mongoose.model("Class", classSchema);
+//added to fix OverwriteModelError: Cannot overwrite `Class` model once compiled. error
+const Class =
+  mongoose.models.Class || mongoose.model("Class", classSchema);
+
+export default Class;

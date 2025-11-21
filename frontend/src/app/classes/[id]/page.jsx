@@ -23,6 +23,9 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [studyGroups, setStudyGroups] = useState([]);
+  const [groupActionLoading, setGroupActionLoading] = useState(false);
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !token) {
@@ -66,6 +69,13 @@ export default function CourseDetailPage() {
           });
           const membersData = await membersRes.json();
           if (membersRes.ok) setMembers(membersData.members || []);
+
+          // Fetch study groups
+          const groupsRes = await fetch(`${baseUrl}/classes/${classId}/study-groups`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const groupsData = await groupsRes.json();
+          if (groupsRes.ok) setStudyGroups(groupsData.groups || []);
         }
       } else {
         setError(classData.message || 'Failed to load class');
@@ -96,6 +106,99 @@ export default function CourseDetailPage() {
       setError('Failed to join class');
     }
   };
+
+
+  const handleCreateStudyGroup = async (name) => {
+    if (!name || !name.trim()) return;
+  
+    setGroupActionLoading(true);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+  
+    try {
+      const res = await fetch(`${baseUrl}/classes/${classId}/study-groups`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      });
+  
+      const data = await res.json();
+  
+      if (res.ok) {
+        // Add the new group to the top of the list
+        setStudyGroups((prev) => [data.group, ...(prev || [])]);
+      } else {
+        alert(data.message || 'Failed to create study group');
+      }
+    } catch (err) {
+      console.error('Error creating study group:', err);
+      alert('Failed to create study group');
+    } finally {
+      setGroupActionLoading(false);
+    }
+  };
+  
+
+  const handleJoinGroup = async (groupId) => {
+    setGroupActionLoading(true);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+    try {
+      const res = await fetch(
+        `${baseUrl}/classes/${classId}/study-groups/${groupId}/join`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+      const data = await res.json();
+
+      if (res.ok) {
+        setStudyGroups((prev) =>
+          (prev || []).map((g) => (g._id === groupId ? data.group : g))
+        );
+      } else {
+        alert(data.message || 'Failed to join study group');
+      }
+    } catch (err) {
+      console.error('Error joining study group:', err);
+      alert('Failed to join study group');
+    } finally {
+      setGroupActionLoading(false);
+    }
+  };
+
+  const handleLeaveGroup = async (groupId) => {
+    setGroupActionLoading(true);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+    try {
+      const res = await fetch(
+        `${baseUrl}/classes/${classId}/study-groups/${groupId}/leave`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+      const data = await res.json();
+
+      if (res.ok) {
+        setStudyGroups((prev) =>
+          (prev || []).map((g) => (g._id === groupId ? data.group : g))
+        );
+      } else {
+        alert(data.message || 'Failed to leave study group');
+      }
+    } catch (err) {
+      console.error('Error leaving study group:', err);
+      alert('Failed to leave study group');
+    } finally {
+      setGroupActionLoading(false);
+    }
+  };
+
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -364,12 +467,62 @@ export default function CourseDetailPage() {
                         </div>
                       </div>
                     )}
-
                     {/* Study Groups Tab */}
                     {activeTab === 'study-groups' && (
-                      <div className="bg-white rounded-xl shadow-sm p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Study Groups</h2>
-                        <p className="text-gray-500">Study groups feature coming soon...</p>
+                      <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+                        <h2 className="text-xl font-bold text-gray-900">Study Groups</h2>
+
+                        <button
+                          onClick={() => {
+                            const name = prompt("Enter study group name:");
+                            if (name) handleCreateStudyGroup(name);
+                          }}
+                          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                        >
+                          Create Study Group
+                        </button>
+
+
+                        {studyGroups.length === 0 && (
+                          <p className="text-gray-500 text-sm">No study groups yet.</p>
+                        )}
+
+                        {studyGroups.map((group) => {
+                          const isMember =
+                            group.members &&
+                            user &&
+                            group.members.some((m) => m._id === user._id);
+
+                          return (
+                            <div
+                              key={group._id}
+                              className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                            >
+                              <div>
+                                <p className="font-semibold text-gray-900">{group.name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {group.members ? group.members.length : 0} members
+                                </p>
+                              </div>
+
+                              {isMember ? (
+                                <button
+                                  onClick={() => handleLeaveGroup(group._id)}
+                                  className="text-sm px-3 py-1 border rounded-lg text-gray-700 hover:bg-gray-50"
+                                >
+                                  Leave
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleJoinGroup(group._id)}
+                                  className="text-sm px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                                >
+                                  Join
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

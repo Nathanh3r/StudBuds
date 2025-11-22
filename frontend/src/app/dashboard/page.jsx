@@ -81,36 +81,6 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const quickActions = [
-    {
-      id: 'discover',
-      title: 'Discover',
-      description: 'Find new courses',
-      icon: Compass,
-      href: '/discover',
-      iconColor: 'text-indigo-600',
-      iconBgColor: 'bg-indigo-50',
-    },
-    {
-      id: 'friends',
-      title: 'Friends',
-      description: 'Connect with peers',
-      icon: Users,
-      href: '/friends',
-      iconColor: 'text-rose-600',
-      iconBgColor: 'bg-rose-50',
-    },
-    {
-      id: 'messages',
-      title: 'Messages',
-      description: 'Check your inbox',
-      icon: MessageCircle,
-      href: '/messages',
-      iconColor: 'text-cyan-600',
-      iconBgColor: 'bg-cyan-50',
-    },
-  ];
-
   // Mock stats data - replace with real data from your API
   const stats = [
     {
@@ -187,58 +157,6 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-5">Quick Actions</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {quickActions.map((action) => {
-                const Icon = action.icon;
-                const isActive = hoveredCard === action.id;
-                
-                return (
-                  <Link
-                    key={action.id}
-                    href={action.href}
-                    onMouseEnter={() => setHoveredCard(action.id)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    className={`group relative overflow-hidden rounded-3xl p-8 transition-all duration-300 ${
-                      isActive
-                        ? 'bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 text-white shadow-2xl scale-[1.02]'
-                        : 'bg-white border-2 border-gray-100 hover:border-indigo-200 hover:shadow-xl'
-                    }`}
-                  >
-                    <div className="relative z-10">
-                      <div className={`${isActive ? 'bg-white/20' : action.iconBgColor} w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all group-hover:scale-110`}>
-                        <Icon 
-                          className={`w-7 h-7 transition-colors ${
-                            isActive ? 'text-white' : action.iconColor
-                          }`}
-                          strokeWidth={2}
-                        />
-                      </div>
-                      <h3 className={`text-xl font-semibold mb-2 transition-colors ${
-                        isActive ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        {action.title}
-                      </h3>
-                      <p className={`text-sm transition-colors ${
-                        isActive ? 'text-white/80' : 'text-gray-500'
-                      }`}>
-                        {action.description}
-                      </p>
-                    </div>
-                    {isActive && (
-                      <>
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
-                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12" />
-                      </>
-                    )}
-                  </Link>
                 );
               })}
             </div>

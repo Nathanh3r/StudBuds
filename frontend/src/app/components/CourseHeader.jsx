@@ -2,7 +2,7 @@
 
 export default function CourseHeader({ code, name, term, instructor, studentCount }) {
   return (
-    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 mb-6 text-white shadow-lg">
+    <div className="bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 rounded-xl p-8 mb-6 text-white shadow-lg">
       <h1 className="text-4xl font-bold mb-3">{code}: {name}</h1>
       <div className="flex items-center gap-4 text-indigo-100">
         <span>{term}</span>

@@ -6,9 +6,10 @@ import { useSidebar } from '../context/SidebarContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
 import ClassCard from '../components/ClassCard';
+import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 export default function DiscoverPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -22,8 +23,9 @@ export default function DiscoverPage() {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const [selectedType, setSelectedType] = useState('all'); // all, catalog, user-created
+  const [selectedType, setSelectedType] = useState('all');
   const [departments, setDepartments] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,7 +52,6 @@ export default function DiscoverPage() {
         },
       });
       const data = await res.json();
-      console.log('All classes:', data);
       setAllClasses(data.classes || []);
       
       // Extract unique departments
@@ -70,18 +71,15 @@ export default function DiscoverPage() {
 
   // Filter classes
   const filteredClasses = allClasses.filter(cls => {
-    // Search filter
     const matchesSearch = 
       cls.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (cls.description && cls.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Department filter
     const matchesDepartment = 
       selectedDepartment === 'all' || 
       cls.department === selectedDepartment;
     
-    // Type filter
     let matchesType = true;
     if (selectedType === 'catalog') {
       matchesType = !cls.isUserCreated;
@@ -102,6 +100,14 @@ export default function DiscoverPage() {
     setCurrentPage(1);
   }, [searchTerm, selectedDepartment, selectedType]);
 
+  const hasActiveFilters = selectedDepartment !== 'all' || selectedType !== 'all';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedDepartment('all');
+    setSelectedType('all');
+  };
+
   if (authLoading || loading) {
     return <LoadingScreen />;
   }
@@ -109,111 +115,119 @@ export default function DiscoverPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-white flex">
       <Sidebar />
 
-      <div
-        className={`flex-1 transition-all duration-300 ${
-          isCollapsed ? 'ml-20' : 'ml-64'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Page Header */}
-          <PageHeader
+      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
+        <div className="max-w-7xl mx-auto px-8 pt-8 pb-16">
+         <PageHeader
             title="Discover Courses"
-            subtitle={`Browse ${allClasses.length} available courses and join study groups`}
+            subtitle={`Browse ${allClasses.length} courses and start your learning journey`}
           />
-
-          {/* Filters Section */}
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Search */}
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search
-                </label>
-                <input
-                  type="text"
-                  placeholder="Search courses..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                />
-              </div>
-
-              {/* Department Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Department
-                </label>
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                >
-                  <option value="all">All Departments</option>
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Type Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Course Type
-                </label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                >
-                  <option value="all">All Courses</option>
-                  <option value="catalog">UCR Catalog Only</option>
-                  <option value="user-created">User Created Only</option>
-                </select>
-              </div>
+          {/* Search and Filters */}
+          <div className="mb-12">
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" strokeWidth={2} />
+              <input
+                type="text"
+                placeholder="Search courses by name, code, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 rounded-2xl focus:border-indigo-300 focus:outline-none transition text-lg"
+              />
             </div>
 
-            {/* Results count */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
-                Showing <span className="font-semibold text-gray-900">{paginatedClasses.length}</span> of{' '}
-                <span className="font-semibold text-gray-900">{filteredClasses.length}</span> courses
-                {(searchTerm || selectedDepartment !== 'all' || selectedType !== 'all') && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedDepartment('all');
-                      setSelectedType('all');
-                    }}
-                    className="ml-3 text-indigo-600 hover:text-indigo-700 font-medium"
-                  >
-                    Clear filters
-                  </button>
+            {/* Filter Toggle and Active Filters */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                  showFilters || hasActiveFilters
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Filter className="w-4 h-4" strokeWidth={2} />
+                <span className="font-medium">Filters</span>
+                {hasActiveFilters && (
+                  <span className="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
+                    {[selectedDepartment !== 'all', selectedType !== 'all'].filter(Boolean).length}
+                  </span>
                 )}
+              </button>
+
+              <p className="text-sm text-gray-400">
+                <span className="font-semibold text-gray-900">{filteredClasses.length}</span> courses
               </p>
             </div>
+
+            {/* Collapsible Filters */}
+            {showFilters && (
+              <div className="mt-4 p-6 bg-gray-50 rounded-2xl border-2 border-gray-100 animate-slideDown">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Department Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Department
+                    </label>
+                    <select
+                      value={selectedDepartment}
+                      onChange={(e) => setSelectedDepartment(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-300 focus:outline-none transition bg-white"
+                    >
+                      <option value="all">All Departments</option>
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Type Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course Type
+                    </label>
+                    <select
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-300 focus:outline-none transition bg-white"
+                    >
+                      <option value="all">All Courses</option>
+                      <option value="catalog">UCR Catalog Only</option>
+                      <option value="user-created">User Created Only</option>
+                    </select>
+                  </div>
+                </div>
+
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="mt-4 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Classes Grid */}
           {paginatedClasses.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No courses found</h3>
-              <p className="text-gray-600 mb-6">
-                {searchTerm || selectedDepartment !== 'all' || selectedType !== 'all'
-                  ? 'Try adjusting your filters'
+            <div className="bg-gray-50 rounded-3xl p-20 text-center">
+              <Search className="w-20 h-20 mx-auto mb-6 text-gray-300" strokeWidth={1.5} />
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+                No courses found
+              </h3>
+              <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">
+                {searchTerm || hasActiveFilters
+                  ? 'Try adjusting your search or filters'
                   : 'No courses available yet'}
               </p>
-              {(searchTerm || selectedDepartment !== 'all' || selectedType !== 'all') && (
+              {(searchTerm || hasActiveFilters) && (
                 <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedDepartment('all');
-                    setSelectedType('all');
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition"
+                  onClick={clearFilters}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-8 py-4 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
                 >
                   Clear all filters
                 </button>
@@ -221,7 +235,7 @@ export default function DiscoverPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                 {paginatedClasses.map((course) => (
                   <ClassCard key={course._id} course={course} />
                 ))}
@@ -229,21 +243,20 @@ export default function DiscoverPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="mt-8 flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                   {/* Previous Button */}
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="p-3 rounded-xl border-2 border-gray-100 hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
-                    ← Previous
+                    <ChevronLeft className="w-5 h-5 text-gray-600" strokeWidth={2} />
                   </button>
 
                   {/* Page Numbers */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                       .filter(page => {
-                        // Show first page, last page, current page, and pages around current
                         return (
                           page === 1 ||
                           page === totalPages ||
@@ -251,21 +264,20 @@ export default function DiscoverPage() {
                         );
                       })
                       .map((page, idx, arr) => {
-                        // Add ellipsis
                         const prevPage = arr[idx - 1];
                         const showEllipsis = prevPage && page - prevPage > 1;
 
                         return (
-                          <div key={page} className="flex items-center gap-1">
+                          <div key={page} className="flex items-center gap-2">
                             {showEllipsis && (
-                              <span className="px-2 text-gray-400">...</span>
+                              <span className="px-2 text-gray-400">···</span>
                             )}
                             <button
                               onClick={() => setCurrentPage(page)}
-                              className={`w-10 h-10 rounded-lg font-medium transition ${
+                              className={`min-w-[48px] h-12 px-4 rounded-xl font-medium transition-all ${
                                 currentPage === page
-                                  ? 'bg-indigo-600 text-white'
-                                  : 'border border-gray-300 hover:bg-gray-50'
+                                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
+                                  : 'border-2 border-gray-100 text-gray-600 hover:border-indigo-200 hover:bg-indigo-50'
                               }`}
                             >
                               {page}
@@ -279,9 +291,9 @@ export default function DiscoverPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="p-3 rounded-xl border-2 border-gray-100 hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
-                    Next →
+                    <ChevronRight className="w-5 h-5 text-gray-600" strokeWidth={2} />
                   </button>
                 </div>
               )}

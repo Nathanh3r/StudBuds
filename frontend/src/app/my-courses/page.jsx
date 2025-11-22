@@ -64,7 +64,7 @@ export default function MyCoursesPage() {
       <Sidebar />
 
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-8 pt-8 pb-16">
           {/* Page Header */}
           <PageHeader
             title="My Courses"

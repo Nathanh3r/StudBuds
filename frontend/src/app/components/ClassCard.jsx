@@ -2,67 +2,119 @@
 'use client';
 
 import Link from 'next/link';
+import { 
+  Users, 
+  ChevronRight, 
+  Dna,           
+  FlaskConical,   
+  Code,          
+  Calculator,    
+  Brain,         
+  Zap,           
+  TrendingUp,    
+  BookOpen,      
+  Globe,         
+  Landmark,      
+  Languages,     
+  Microscope,    
+  Palette,       
+  Music,         
+  Scale,         
+  Building2,     
+  Pencil,        
+  Activity,      
+} from 'lucide-react';
 
 export default function ClassCard({ course }) {
+  const getSubjectIcon = (department) => {
+    const dept = department?.toUpperCase() || '';
+    
+    const icons = {
+      'BIOL': Dna,
+      'CHEM': FlaskConical,
+      'CS': Code,
+      'CSE': Code,
+      'MATH': Calculator,
+      'PSYC': Brain,
+      'PHYS': Zap,
+      'ECON': TrendingUp,
+      'GEOG': Globe,
+      'HIST': Landmark,
+      'ENGL': Pencil,
+      'SPAN': Languages,
+      'FREN': Languages,
+      'ART': Palette,
+      'MUS': Music,
+      'LAW': Scale,
+      'ENGR': Building2,
+      'PE': Activity,
+      'BCOE': Building2,
+    };
+
+    for (const [key, icon] of Object.entries(icons)) {
+      if (dept.startsWith(key)) {
+        return icon;
+      }
+    }
+
+    return BookOpen;
+  };
+
+  const SubjectIcon = getSubjectIcon(course.department);
+
   return (
     <Link href={`/classes/${course._id}`}>
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 h-full flex flex-col group border border-transparent hover:border-indigo-200">
-        {/* Header */}
+      <div className="group bg-white border-2 border-gray-100 rounded-3xl p-6 h-full flex flex-col hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300">
+        
+        {/* Icon and Course Code */}
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl">📚</span>
-          </div>
-          <div className="text-right">
-            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs">
-              {course.memberCount} {course.memberCount === 1 ? 'student' : 'students'}
-            </span>
+          <div className="flex items-center gap-3">
+            {/* Subject Icon - All use same gradient */}
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:shadow-lg transition-all">
+              <SubjectIcon className="w-6 h-6 text-indigo-600 group-hover:text-white transition-all" strokeWidth={2} />
+            </div>
+            
+            {/* Course Code */}
+            <h3 className="text-2xl font-semibold text-gray-900 group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
+              {course.code}
+            </h3>
           </div>
         </div>
 
-        {/* Course Code & Badges */}
-        <div className="mb-2">
-          <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
-            {course.code}
-          </h3>
-          {course.isUserCreated && (
-            <span className="inline-block bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-medium mt-1">
-              User Created
-            </span>
-          )}
-        </div>
-
-        {/* Course Name - Fixed 2 line height */}
-        <p className="text-gray-700 mb-3 font-medium line-clamp-2">
+        {/* Course Name */}
+        <p className="text-gray-700 mb-4 leading-relaxed line-clamp-2 flex-shrink-0">
           {course.name}
         </p>
 
         {/* Description */}
         {course.description && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+          <p className="text-sm text-gray-400 line-clamp-3 mb-4 leading-relaxed">
             {course.description}
           </p>
         )}
 
-        {/* Spacer to push button to bottom */}
+        {/* Spacer */}
         <div className="flex-1"></div>
 
-        {/* View Details Button - Bottom Right */}
-        <div className="flex justify-end mt-4">
-          <div className="flex items-center gap-1 text-indigo-600 font-semibold group-hover:gap-2 transition-all">
-            <span className="text-sm">View Details</span>
-            <svg 
-              className="w-5 h-5 group-hover:translate-x-1 transition-transform" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M9 5l7 7-7 7" 
-              />
-            </svg>
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-4">
+          {/* Student Count */}
+          <div className="flex items-center gap-2 text-gray-400">
+            <Users className="w-4 h-4" strokeWidth={2} />
+            <span className="text-sm font-medium">
+              {course.memberCount}
+            </span>
+          </div>
+
+          {/* View Details */}
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-semibold text-indigo-600 group-hover:text-indigo-700">
+              View Details
+            </span>
+            <ChevronRight 
+              className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700 group-hover:translate-x-0.5 transition-all" 
+              strokeWidth={2}
+            />
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+// app/messages/page.jsx
 'use client';
 
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +8,7 @@ import { useEffect, useState, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
+import { Send, MessageCircle, Users as UsersIcon, AlertCircle } from 'lucide-react';
 
 export default function MessagesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -21,17 +23,15 @@ export default function MessagesPage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState('');
   const [backendError, setBackendError] = useState(false);
-  const [newChatUser, setNewChatUser] = useState(null); // For starting new conversations
+  const [newChatUser, setNewChatUser] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !token) {
       router.push('/login');
     }
   }, [authLoading, token, router]);
 
-  // Check for userId in URL params (for starting new conversations)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -42,14 +42,12 @@ export default function MessagesPage() {
     }
   }, [token]);
 
-  // Fetch conversations on mount
   useEffect(() => {
     if (token && user) {
       fetchConversations();
     }
   }, [token, user]);
 
-  // Fetch messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
       fetchMessages(selectedConversation.user._id);
@@ -57,7 +55,6 @@ export default function MessagesPage() {
     }
   }, [selectedConversation]);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -66,12 +63,10 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Start a new conversation with a specific user
   const startNewConversation = async (userId) => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       
-      // Fetch the user's profile
       const res = await fetch(`${baseUrl}/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -80,14 +75,11 @@ export default function MessagesPage() {
         const data = await res.json();
         const targetUser = data.user;
         
-        // Check if conversation already exists
         const existingConvo = conversations.find(c => c.user._id === userId);
         
         if (existingConvo) {
-          // Select existing conversation
           setSelectedConversation(existingConvo);
         } else {
-          // Create a new conversation object (it will be saved when first message is sent)
           const newConvo = {
             user: targetUser,
             lastMessage: null,
@@ -97,7 +89,6 @@ export default function MessagesPage() {
           setSelectedConversation(newConvo);
         }
         
-        // Clear the URL parameter
         window.history.replaceState({}, '', '/messages');
       }
     } catch (err) {
@@ -113,7 +104,6 @@ export default function MessagesPage() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       
-      // Check if response is JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         console.error('Server returned non-JSON response');
@@ -129,7 +119,6 @@ export default function MessagesPage() {
         setError('');
         setBackendError(false);
       } else {
-        // Only show error if it's not a 404 or empty result
         if (res.status !== 404) {
           console.error('API Error:', data.message);
         }
@@ -137,11 +126,9 @@ export default function MessagesPage() {
       }
     } catch (err) {
       console.error('Error fetching conversations:', err);
-      // Check if it's a network error
       if (err.message.includes('fetch')) {
         setBackendError(true);
       }
-      // Don't show error for empty conversations
       setConversations([]);
     } finally {
       setLoading(false);
@@ -155,7 +142,6 @@ export default function MessagesPage() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       
-      // Check if response is JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         console.error('Server returned non-JSON response for messages');
@@ -183,7 +169,6 @@ export default function MessagesPage() {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      // Refresh conversations to update unread counts
       fetchConversations();
     } catch (err) {
       console.error('Error marking as read:', err);
@@ -212,14 +197,11 @@ export default function MessagesPage() {
       if (res.ok) {
         setNewMessage('');
         
-        // If this was a new conversation, clear the newChatUser state
         if (newChatUser) {
           setNewChatUser(null);
         }
         
-        // Refresh messages
         await fetchMessages(selectedConversation.user._id);
-        // Refresh conversations to update last message and add new conversation to list
         await fetchConversations();
       } else {
         const data = await res.json();
@@ -254,19 +236,13 @@ export default function MessagesPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-white flex">
       <Sidebar />
 
-      {/* Main Content */}
-      <div
-        className={`flex-1 transition-all duration-300 ${
-          isCollapsed ? 'ml-20' : 'ml-64'
-        }`}
-      >
+      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-72'}`}>
         <div className="h-screen flex flex-col">
           {/* Page Header */}
-          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-6">
+          <div className="px-8 py-8 border-b-2 border-gray-50">
             <PageHeader
               title="Messages"
               subtitle="Chat with your classmates"
@@ -275,10 +251,10 @@ export default function MessagesPage() {
 
           {/* Backend Error Warning */}
           {backendError && (
-            <div className="bg-yellow-50 border-b border-yellow-200 px-4 sm:px-6 lg:px-8 py-3">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <span className="text-lg">⚠️</span>
-                <p className="text-sm">
+            <div className="bg-yellow-50 border-b-2 border-yellow-100 px-8 py-4">
+              <div className="flex items-center gap-3 text-yellow-800">
+                <AlertCircle className="w-5 h-5" strokeWidth={2} />
+                <p className="text-sm font-medium">
                   Unable to connect to messaging service. Please make sure the backend is running on port 4000.
                 </p>
               </div>
@@ -288,40 +264,40 @@ export default function MessagesPage() {
           {/* Messages Layout */}
           <div className="flex-1 flex overflow-hidden">
             {/* Conversations List */}
-            <div className="w-full sm:w-80 lg:w-96 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
+            <div className="w-full sm:w-80 lg:w-96 border-r-2 border-gray-50 flex flex-col overflow-hidden">
+              <div className="p-6 border-b-2 border-gray-50">
+                <h2 className="text-xl font-semibold text-gray-900">Conversations</h2>
               </div>
 
               <div className="flex-1 overflow-y-auto">
                 {conversations.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <div className="text-6xl mb-4">💬</div>
+                  <div className="p-12 text-center">
+                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" strokeWidth={1.5} />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No messages yet</h3>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
                       Start a conversation with your friends!
                     </p>
                     <button
                       onClick={() => router.push('/friends')}
-                      className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition text-sm"
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-6 py-3 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
                     >
                       Go to Friends
                     </button>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200">
+                  <div>
                     {conversations.map((conversation) => (
                       <button
                         key={conversation.user._id}
                         onClick={() => setSelectedConversation(conversation)}
-                        className={`w-full p-4 hover:bg-gray-50 transition text-left ${
+                        className={`w-full p-5 hover:bg-gray-50 transition text-left border-b border-gray-50 ${
                           selectedConversation?.user._id === conversation.user._id
                             ? 'bg-indigo-50 border-l-4 border-indigo-600'
                             : ''
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
                             <span className="text-white font-semibold text-lg">
                               {conversation.user.name.charAt(0).toUpperCase()}
                             </span>
@@ -332,12 +308,12 @@ export default function MessagesPage() {
                                 {conversation.user.name}
                               </h3>
                               {conversation.lastMessage && (
-                                <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                                <span className="text-xs text-gray-400 ml-2 flex-shrink-0 font-medium">
                                   {formatTime(conversation.lastMessage.createdAt)}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 mb-1 truncate">
+                            <p className="text-xs text-gray-500 mb-2 truncate">
                               {conversation.user.major}
                             </p>
                             {conversation.lastMessage && (
@@ -346,7 +322,7 @@ export default function MessagesPage() {
                               </p>
                             )}
                             {conversation.unreadCount > 0 && (
-                              <span className="inline-block mt-2 bg-indigo-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                              <span className="inline-block mt-2 bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                 {conversation.unreadCount} new
                               </span>
                             )}
@@ -360,22 +336,22 @@ export default function MessagesPage() {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-gray-50">
+            <div className="flex-1 flex flex-col bg-white">
               {selectedConversation ? (
                 <>
                   {/* Chat Header */}
-                  <div className="bg-white border-b border-gray-200 px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold">
+                  <div className="border-b-2 border-gray-50 px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                        <span className="text-white font-semibold text-lg">
                           {selectedConversation.user.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 text-lg">
                           {selectedConversation.user.name}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-500">
                           {selectedConversation.user.major}
                         </p>
                       </div>
@@ -383,15 +359,15 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div className="flex-1 overflow-y-auto p-8 space-y-4">
                     {messages.length === 0 ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center">
-                          <div className="text-4xl mb-2">👋</div>
-                          <p className="text-gray-500 text-sm">
+                          <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" strokeWidth={1.5} />
+                          <p className="text-gray-500 text-lg">
                             {newChatUser 
                               ? `Start a conversation with ${selectedConversation.user.name}!`
-                              : "No messages yet. Say hi to start the conversation!"
+                              : "Say hi to start the conversation!"
                             }
                           </p>
                         </div>
@@ -408,14 +384,14 @@ export default function MessagesPage() {
                               <div
                                 className={`max-w-xs lg:max-w-md xl:max-w-lg ${
                                   isCurrentUser
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-white text-gray-900'
-                                } rounded-2xl px-4 py-2 shadow-sm`}
+                                    ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                                    : 'bg-gray-50 text-gray-900'
+                                } rounded-3xl px-5 py-3`}
                               >
-                                <p className="text-sm break-words">{message.content}</p>
+                                <p className="text-sm break-words leading-relaxed">{message.content}</p>
                                 <p
-                                  className={`text-xs mt-1 ${
-                                    isCurrentUser ? 'text-indigo-200' : 'text-gray-500'
+                                  className={`text-xs mt-2 font-medium ${
+                                    isCurrentUser ? 'text-indigo-100' : 'text-gray-400'
                                   }`}
                                 >
                                   {formatTime(message.createdAt)}
@@ -430,21 +406,22 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Message Input */}
-                  <div className="bg-white border-t border-gray-200 p-4">
+                  <div className="border-t-2 border-gray-50 p-6">
                     <form onSubmit={handleSendMessage} className="flex gap-3">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                        className="flex-1 px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-indigo-300 focus:outline-none transition"
                         disabled={sendingMessage}
                       />
                       <button
                         type="submit"
                         disabled={sendingMessage || !newMessage.trim()}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-2xl transition disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-indigo-500/30 flex items-center gap-2"
                       >
+                        <Send className="w-5 h-5" strokeWidth={2} />
                         {sendingMessage ? 'Sending...' : 'Send'}
                       </button>
                     </form>
@@ -453,11 +430,11 @@ export default function MessagesPage() {
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">💬</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <MessageCircle className="w-20 h-20 mx-auto mb-6 text-gray-300" strokeWidth={1.5} />
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-3">
                       Select a conversation
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 text-lg">
                       Choose a conversation from the list to start messaging
                     </p>
                   </div>
@@ -468,14 +445,17 @@ export default function MessagesPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-lg max-w-md z-50">
-              {error}
-              <button
-                onClick={() => setError('')}
-                className="ml-4 text-red-900 hover:text-red-700"
-              >
-                ✕
-              </button>
+            <div className="fixed bottom-8 right-8 bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-xl max-w-md z-50">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5" strokeWidth={2} />
+                <span className="font-medium">{error}</span>
+                <button
+                  onClick={() => setError('')}
+                  className="ml-2 text-red-900 hover:text-red-700 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
         </div>

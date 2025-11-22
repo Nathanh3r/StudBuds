@@ -108,7 +108,8 @@ classSchema.index({ isUserCreated: 1 });
 
 // Virtual for member count
 classSchema.virtual("memberCount").get(function () {
-  return this.members.length;
+  // make sure members is at least an empty array
+  return (this.members || []).length;
 });
 
 classSchema.set("toJSON", { virtuals: true });

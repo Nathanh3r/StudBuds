@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import studyGroupRoutes from "./routes/studyGroupRoutes.js";
 
 const PORT = process.env.PORT || 4000;
 
@@ -37,6 +38,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/study-groups", studyGroupRoutes);
+
 
 // Start server
 app.listen(PORT, () => {

@@ -16,6 +16,7 @@ import {
   createStudyGroup,
   joinStudyGroup,
   leaveStudyGroup,
+  deleteStudyGroup,
 } from "../controllers/studyGroupController.js";
 
 const router = express.Router();
@@ -52,6 +53,8 @@ router.get("/:id/study-groups", protect, getStudyGroupsForClass);
 router.post("/:id/study-groups", protect, createStudyGroup);
 router.post("/:id/study-groups/:groupId/join", protect, joinStudyGroup);
 router.post("/:id/study-groups/:groupId/leave", protect, leaveStudyGroup);
+
+router.delete("/:id/study-groups/:groupId", protect, deleteStudyGroup);
 
 
 export default router;

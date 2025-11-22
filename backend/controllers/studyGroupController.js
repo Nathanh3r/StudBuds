@@ -1,6 +1,9 @@
+// backend/controllers/studyGroupController.js
+
 import StudyGroup from "../models/StudyGroup.js";
 import Class from "../models/class.js";
 
+// GET /api/classes/:id/study-groups
 export const getStudyGroupsForClass = async (req, res) => {
   try {
     const { id: classId } = req.params;
@@ -16,8 +19,7 @@ export const getStudyGroupsForClass = async (req, res) => {
   }
 };
 
-
-//validate name, ensure class exists, create group
+// POST /api/classes/:id/study-groups
 export const createStudyGroup = async (req, res) => {
   try {
     const { id: classId } = req.params;
@@ -42,9 +44,11 @@ export const createStudyGroup = async (req, res) => {
       location: location || "",
     });
 
-    const populated = await group
+    // Re-fetch with all the populated fields we care about
+    const populated = await StudyGroup.findById(group._id)
       .populate("createdBy", "name email major")
-      .populate("members", "name email major");
+      .populate("members", "name email major")
+      .populate("class", "code name");
 
     return res.status(201).json({ group: populated });
   } catch (error) {
@@ -53,6 +57,7 @@ export const createStudyGroup = async (req, res) => {
   }
 };
 
+// POST /api/classes/:id/study-groups/:groupId/join
 export const joinStudyGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -72,9 +77,10 @@ export const joinStudyGroup = async (req, res) => {
       await group.save();
     }
 
-    const populated = await group
+    const populated = await StudyGroup.findById(group._id)
       .populate("createdBy", "name email major")
-      .populate("members", "name email major");
+      .populate("members", "name email major")
+      .populate("class", "code name");
 
     return res.json({ group: populated });
   } catch (error) {
@@ -83,6 +89,7 @@ export const joinStudyGroup = async (req, res) => {
   }
 };
 
+// POST /api/classes/:id/study-groups/:groupId/leave
 export const leaveStudyGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -98,13 +105,71 @@ export const leaveStudyGroup = async (req, res) => {
     );
     await group.save();
 
-    const populated = await group
+    const populated = await StudyGroup.findById(group._id)
       .populate("createdBy", "name email major")
-      .populate("members", "name email major");
+      .populate("members", "name email major")
+      .populate("class", "code name");
 
     return res.json({ group: populated });
   } catch (error) {
     console.error("leaveStudyGroup error:", error);
     return res.status(500).json({ message: "Failed to leave study group" });
+  }
+};
+
+// GET /api/study-groups/:groupId
+export const getStudyGroupById = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const group = await StudyGroup.findById(groupId)
+      .populate("class", "code name term instructor")
+      .populate("createdBy", "name email major")
+      .populate("members", "name email major");
+
+    if (!group) {
+      return res.status(404).json({ message: "Study group not found" });
+    }
+
+    return res.json({ group });
+  } catch (error) {
+    console.error("getStudyGroupById error:", error);
+    return res.status(500).json({ message: "Failed to fetch study group" });
+  }
+};
+
+// DELETE /api/classes/:id/study-groups/:groupId
+export const deleteStudyGroup = async (req, res) => {
+  try {
+    const { id: classId, groupId } = req.params;
+    const userId = req.user._id.toString();
+
+    const group = await StudyGroup.findById(groupId);
+
+    if (!group) {
+      return res.status(404).json({ message: "Study group not found" });
+    }
+
+    if (group.class.toString() !== classId.toString()) {
+      return res
+        .status(400)
+        .json({ message: "This study group does not belong to this class" });
+    }
+
+    // Only the creator can delete
+    if (!group.createdBy || group.createdBy.toString() !== userId) {
+      return res.status(403).json({
+        message: "Only the group creator can delete this study group",
+      });
+    }
+
+    await group.deleteOne();
+
+    return res.json({ message: "Study group deleted successfully" });
+  } catch (error) {
+    console.error("deleteStudyGroup error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to delete study group" });
   }
 };

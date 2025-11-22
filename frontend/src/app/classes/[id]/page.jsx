@@ -2,7 +2,7 @@
 
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import LoadingScreen from '../../components/LoadingScreen';
 import Sidebar from '../../components/Sidebar';
@@ -14,17 +14,32 @@ export default function CourseDetailPage() {
   const { isCollapsed } = useSidebar();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  
   const classId = params.id;
-
+  
+  const initialTabFromUrl = searchParams?.get('tab');
+  const initialTab =
+    initialTabFromUrl === 'study-groups' ? 'study-groups' : 'overview';
+  
   const [classData, setClassData] = useState(null);
   const [posts, setPosts] = useState([]);
   const [members, setMembers] = useState([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [studyGroups, setStudyGroups] = useState([]);
   const [groupActionLoading, setGroupActionLoading] = useState(false);
+  
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newGroup, setNewGroup] = useState({
+    name: "",
+    description: "",
+    scheduledAt: "",
+    location: "",
+  });
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -108,37 +123,66 @@ export default function CourseDetailPage() {
   };
 
 
-  const handleCreateStudyGroup = async (name) => {
-    if (!name || !name.trim()) return;
+  const handleCreateStudyGroup = async (e) => {
+    // so the page doesn't refresh on submit
+    e.preventDefault();
+  
+    // basic validation
+    if (!newGroup.name || !newGroup.name.trim()) {
+      alert("Group name is required");
+      return;
+    }
   
     setGroupActionLoading(true);
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
   
     try {
-      const res = await fetch(`${baseUrl}/classes/${classId}/study-groups`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name }),
-      });
+      const res = await fetch(
+        `${baseUrl}/classes/${classId}/study-groups`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: newGroup.name.trim(),
+            description: newGroup.description.trim(),
+            location: newGroup.location.trim(),
+            // only send scheduledAt if user picked one
+            scheduledAt: newGroup.scheduledAt || undefined,
+          }),
+        }
+      );
   
       const data = await res.json();
   
       if (res.ok) {
-        // Add the new group to the top of the list
+        // prepend new group
         setStudyGroups((prev) => [data.group, ...(prev || [])]);
+  
+        // reset the form
+        setNewGroup({
+          name: "",
+          description: "",
+          scheduledAt: "",
+          location: "",
+        });
+  
+        // hide the form
+        setShowCreateForm(false);
       } else {
-        alert(data.message || 'Failed to create study group');
+        alert(data.message || "Failed to create study group");
       }
     } catch (err) {
-      console.error('Error creating study group:', err);
-      alert('Failed to create study group');
+      console.error("Error creating study group:", err);
+      alert("Failed to create study group");
     } finally {
       setGroupActionLoading(false);
     }
   };
+  
   
 
   const handleJoinGroup = async (groupId) => {
@@ -198,6 +242,43 @@ export default function CourseDetailPage() {
       setGroupActionLoading(false);
     }
   };
+
+  const handleDeleteGroup = async (groupId) => {
+    if (!window.confirm("Delete this study group? This can’t be undone.")) {
+      return;
+    }
+
+    setGroupActionLoading(true);
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
+    try {
+      const res = await fetch(
+        `${baseUrl}/classes/${classId}/study-groups/${groupId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Remove deleted group from the list
+        setStudyGroups((prev) =>
+          (prev || []).filter((g) => g._id !== groupId)
+        );
+      } else {
+        alert(data.message || "Failed to delete study group");
+      }
+    } catch (err) {
+      console.error("Error deleting study group:", err);
+      alert("Failed to delete study group");
+    } finally {
+      setGroupActionLoading(false);
+    }
+  };
+
 
 
   const tabs = [
@@ -467,64 +548,195 @@ export default function CourseDetailPage() {
                         </div>
                       </div>
                     )}
-                    {/* Study Groups Tab */}
-                    {activeTab === 'study-groups' && (
-                      <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900">Study Groups</h2>
+                  {/* Study Groups Tab */}
+                  {activeTab === "study-groups" && (
+                    <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+                      <h2 className="text-xl font-bold text-gray-900">Study Groups</h2>
 
+                      {/* Toggle create form */}
+                      {!showCreateForm ? (
                         <button
-                          onClick={() => {
-                            const name = prompt("Enter study group name:");
-                            if (name) handleCreateStudyGroup(name);
-                          }}
+                          onClick={() => setShowCreateForm(true)}
                           className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
                         >
                           Create Study Group
                         </button>
+                      ) : (
+                        <form onSubmit={handleCreateStudyGroup} className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Group Name *
+                            </label>
+                            <input
+                              type="text"
+                              value={newGroup.name}
+                              onChange={(e) =>
+                                setNewGroup((prev) => ({ ...prev, name: e.target.value }))
+                              }
+                              className="w-full border rounded-lg px-3 py-2 text-sm"
+                              placeholder="CS180 Midterm 1 Review"
+                              required
+                            />
+                          </div>
 
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Description
+                            </label>
+                            <textarea
+                              value={newGroup.description}
+                              onChange={(e) =>
+                                setNewGroup((prev) => ({
+                                  ...prev,
+                                  description: e.target.value,
+                                }))
+                              }
+                              className="w-full border rounded-lg px-3 py-2 text-sm"
+                              placeholder="Topics, expectations, etc."
+                              rows={2}
+                            />
+                          </div>
 
-                        {studyGroups.length === 0 && (
-                          <p className="text-gray-500 text-sm">No study groups yet.</p>
-                        )}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Date & Time
+                              </label>
+                              <input
+                                type="datetime-local"
+                                value={newGroup.scheduledAt}
+                                onChange={(e) =>
+                                  setNewGroup((prev) => ({
+                                    ...prev,
+                                    scheduledAt: e.target.value,
+                                  }))
+                                }
+                                className="w-full border rounded-lg px-3 py-2 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Location
+                              </label>
+                              <input
+                                type="text"
+                                value={newGroup.location}
+                                onChange={(e) =>
+                                  setNewGroup((prev) => ({
+                                    ...prev,
+                                    location: e.target.value,
+                                  }))
+                                }
+                                className="w-full border rounded-lg px-3 py-2 text-sm"
+                                placeholder="Library Room 204"
+                              />
+                            </div>
+                          </div>
 
-                        {studyGroups.map((group) => {
-                          const isMember =
-                            group.members &&
-                            user &&
-                            group.members.some((m) => m._id === user._id);
-
-                          return (
-                            <div
-                              key={group._id}
-                              className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="submit"
+                              disabled={groupActionLoading}
+                              className={`bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold ${
+                                groupActionLoading ? "opacity-60 cursor-not-allowed" : ""
+                              }`}
                             >
-                              <div>
-                                <p className="font-semibold text-gray-900">{group.name}</p>
-                                <p className="text-sm text-gray-500">
-                                  {group.members ? group.members.length : 0} members
-                                </p>
-                              </div>
+                              {groupActionLoading ? "Creating..." : "Create"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowCreateForm(false)}
+                              className="text-sm text-gray-600"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      )}
 
+                      {/* List of groups */}
+                      {studyGroups.length === 0 && (
+                        <p className="text-gray-500 text-sm">No study groups yet.</p>
+                      )}
+
+                      {studyGroups.map((group) => {
+                        const isMember =
+                          group.members &&
+                          user &&
+                          group.members.some((m) => m._id === user._id);
+
+                        const isCreator =
+                          group.createdBy &&
+                          user &&
+                          group.createdBy._id === user._id;
+
+                        return (
+                          <div
+                            key={group._id}
+                            className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                          >
+                            <div>
+                              <p className="font-semibold text-gray-900">{group.name}</p>
+
+                              {group.description && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {group.description}
+                                </p>
+                              )}
+
+                              {(group.scheduledAt || group.location) && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {group.scheduledAt &&
+                                    `🕒 ${new Date(group.scheduledAt).toLocaleString()} `}
+                                  {group.location && `📍 ${group.location}`}
+                                </p>
+                              )}
+
+                              <p className="text-sm text-gray-500 mt-1">
+                                {group.members ? group.members.length : 0} members
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2">
                               {isMember ? (
                                 <button
                                   onClick={() => handleLeaveGroup(group._id)}
-                                  className="text-sm px-3 py-1 border rounded-lg text-gray-700 hover:bg-gray-50"
+                                  disabled={groupActionLoading}
+                                  className={`text-sm px-3 py-1 border rounded-lg text-gray-700 hover:bg-gray-50 ${
+                                    groupActionLoading ? "opacity-60 cursor-not-allowed" : ""
+                                  }`}
                                 >
                                   Leave
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleJoinGroup(group._id)}
-                                  className="text-sm px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                                  disabled={groupActionLoading}
+                                  className={`text-sm px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 ${
+                                    groupActionLoading ? "opacity-60 cursor-not-allowed" : ""
+                                  }`}
                                 >
                                   Join
                                 </button>
                               )}
+
+                              {isCreator && (
+                                <button
+                                  onClick={() => handleDeleteGroup(group._id)}
+                                  disabled={groupActionLoading}
+                                  className={`text-sm px-3 py-1 border border-red-400 text-red-600 rounded-lg hover:bg-red-50 ${
+                                    groupActionLoading ? "opacity-60 cursor-not-allowed" : ""
+                                  }`}
+                                >
+                                  Delete
+                                </button>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   </div>
                 </div>
               </>

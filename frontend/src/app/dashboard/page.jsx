@@ -13,50 +13,48 @@ export default function DashboardPage() {
   const { user, token, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
   const router = useRouter();
+
   const [myClasses, setMyClasses] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [myStudyGroups, setMyStudyGroups] = useState([]);
+  const [groupsError, setGroupsError] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !token) {
       router.push('/login');
     }
   }, [authLoading, token, router]);
 
+  // Fetch dashboard data once we have user + token
   useEffect(() => {
     if (token && user) {
       fetchDashboardData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user]);
 
   const fetchDashboardData = async () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      
-      // Fetch all classes
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+      // 1) Fetch all classes
       const classesRes = await fetch(`${baseUrl}/classes`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const classesData = await classesRes.json();
-      
-      // Filter to only show classes the user is a member of
+
       const allClasses = classesData.classes || [];
-      const userClassIds = user.classes || []; // Array of class IDs user is enrolled in
-      
-      console.log('All classes:', allClasses);
-      console.log('User class IDs:', userClassIds);
-      
-      // Filter classes where user is a member
-      const enrolledClasses = allClasses.filter(cls => 
+      const userClassIds = user.classes || []; // class IDs user is enrolled in
+
+      const enrolledClasses = allClasses.filter((cls) =>
         userClassIds.includes(cls._id)
       );
-      
       setMyClasses(enrolledClasses);
-      console.log('User enrolled classes:', enrolledClasses);
 
-      // TODO: Fetch recent activity and upcoming events when backend endpoints are ready
-      // For now, using mock data
+      // 2) Mock recent activity (same as before)
       setRecentActivity([
         {
           id: 1,
@@ -87,29 +85,27 @@ export default function DashboardPage() {
         },
       ]);
 
-      setUpcomingEvents([
+      // 3) Fetch *real* study groups the user is in
+      setGroupsError('');
+      const groupsRes = await fetch(
+        `${baseUrl}/users/me/study-groups`,
         {
-          id: 1,
-          title: 'CS180 Study Group',
-          course: 'Operating Systems',
-          courseTag: 'Operating Systems',
-          time: 'Tomorrow, 3 PM – 5 PM',
-          location: 'Library Room 204',
-          attendees: 5,
-        },
-        {
-          id: 2,
-          title: 'Math 33A Review',
-          course: 'Linear Algebra',
-          courseTag: 'Linear Algebra',
-          time: 'Friday, 1 PM – 3 PM',
-          location: 'Math Building 101',
-          attendees: 8,
-        },
-      ]);
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
+      const groupsData = await groupsRes.json();
+
+      if (groupsRes.ok) {
+        setMyStudyGroups(groupsData.groups || []);
+      } else {
+        setGroupsError(groupsData.message || 'Failed to load study groups');
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setGroupsError('Failed to load study groups');
     } finally {
       setLoading(false);
     }
@@ -141,19 +137,30 @@ export default function DashboardPage() {
 
           {/* Recent Activity Section */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Recent Activity
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {recentActivity.map((activity) => (
-                <div key={activity.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
+                <div
+                  key={activity.id}
+                  className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition"
+                >
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 ${activity.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <div
+                      className={`w-12 h-12 ${activity.color} rounded-lg flex items-center justify-center flex-shrink-0`}
+                    >
                       <span className="text-2xl">{activity.icon}</span>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                        <h3 className="font-semibold text-gray-900">
+                          {activity.title}
+                        </h3>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {activity.description}
+                      </p>
                       <p className="text-xs text-gray-500">{activity.time}</p>
                     </div>
                   </div>
@@ -165,15 +172,22 @@ export default function DashboardPage() {
           {/* Your Courses Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Your Courses</h2>
-              <Link href="/discover" className="text-indigo-600 hover:text-indigo-700 font-medium">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Your Courses
+              </h2>
+              <Link
+                href="/discover"
+                className="text-indigo-600 hover:text-indigo-700 font-medium"
+              >
                 View All
               </Link>
             </div>
 
             {myClasses.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                <p className="text-gray-500 text-lg mb-4">You haven't joined any classes yet</p>
+                <p className="text-gray-500 text-lg mb-4">
+                  You haven&apos;t joined any classes yet
+                </p>
                 <Link
                   href="/discover"
                   className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition"
@@ -199,55 +213,110 @@ export default function DashboardPage() {
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </div>
-                    
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">{course.code}</h3>
+
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      {course.code}
+                    </h3>
                     <p className="text-sm text-gray-500 mb-3">Fall 2025</p>
                     <p className="text-gray-700 mb-3 text-sm">{course.name}</p>
-                    <p className="text-xs text-gray-500">{course.memberCount} students</p>
+                    <p className="text-xs text-gray-500">
+                      {course.memberCount} students
+                    </p>
                   </Link>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Upcoming Study Sessions Section */}
-          {upcomingEvents.length > 0 && (
+          {/* Upcoming Study Sessions Section (real study groups) */}
+          {(myStudyGroups.length > 0 || groupsError) && (
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Study Sessions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {upcomingEvents.map((event) => (
-                  <div key={event.id} className="bg-white rounded-xl shadow-sm p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-lg font-bold text-gray-900">{event.title}</h3>
-                      <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
-                        {event.courseTag}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <span className="text-lg">🕐</span>
-                        <span className="text-sm">{event.time}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <span className="text-lg">📍</span>
-                        <span className="text-sm">{event.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <span className="text-lg">👥</span>
-                        <span className="text-sm">{event.attendees} students attending</span>
-                      </div>
-                    </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Upcoming Study Sessions
+              </h2>
 
-                    <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition">
-                      Join Session
-                    </button>
-                  </div>
-                ))}
-              </div>
+              {groupsError ? (
+                <p className="text-red-500 text-sm">{groupsError}</p>
+              ) : myStudyGroups.length === 0 ? (
+                <p className="text-gray-500 text-sm">
+                  You haven&apos;t joined any study groups yet.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myStudyGroups.map((group) => {
+                    const attendeeCount = group.members
+                      ? group.members.length
+                      : 0;
+
+                    const classLabel = group.class
+                      ? `${group.class.code || ''}${
+                          group.class.name
+                            ? ` – ${group.class.name}`
+                            : ''
+                        }`
+                      : '';
+
+                    const when = group.scheduledAt
+                      ? new Date(group.scheduledAt).toLocaleString()
+                      : 'Time TBA';
+
+                    const location = group.location || 'Location TBA';
+
+                    return (
+                      <div
+                        key={group._id}
+                        className="bg-white rounded-xl shadow-sm p-6"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <h3 className="text-lg font-bold text-gray-900">
+                            {group.name}
+                          </h3>
+                          {classLabel && (
+                            <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
+                              {classLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <span className="text-lg">🕐</span>
+                            <span className="text-sm">{when}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <span className="text-lg">📍</span>
+                            <span className="text-sm">{location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <span className="text-lg">👥</span>
+                            <span className="text-sm">
+                              {attendeeCount} students attending
+                            </span>
+                          </div>
+                        </div>
+                        <Link
+                          href={
+                            group.class && group.class._id
+                              ? `/classes/${group.class._id}?tab=study-groups`
+                              : '/dashboard'
+                          }
+                          className="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition"
+                        >
+                          View Session
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

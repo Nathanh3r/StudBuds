@@ -3,6 +3,8 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { generateToken } from "../utils/genToken.js";
+import StudyGroup from "../models/StudyGroup.js";
+
 
 // @desc    Register a new user
 // @route   POST /api/users/register
@@ -269,3 +271,25 @@ export const searchUsers = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getMyStudyGroups = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const groups = await StudyGroup.find({ members: userId })
+      .populate({
+        path: "class",
+        select: "code name members", 
+      })
+      .populate("members", "name email")
+      .sort({ scheduledAt: 1 }); 
+
+    return res.json({ groups });
+  } catch (error) {
+    console.error("getMyStudyGroups error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch your study groups" });
+  }
+};
+

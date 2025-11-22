@@ -33,7 +33,6 @@ const studyGroupSchema = new mongoose.Schema(
       },
     ],
 
-    // scheduled time + location
     scheduledAt: {
       type: Date,
     },

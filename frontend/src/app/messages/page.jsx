@@ -3,6 +3,7 @@
 
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
@@ -13,8 +14,9 @@ import { Send, MessageCircle, Users as UsersIcon, AlertCircle } from 'lucide-rea
 export default function MessagesPage() {
   const { user, token, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
   const router = useRouter();
-  
+
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -36,16 +38,12 @@ export default function MessagesPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const userId = params.get('userId');
-      if (userId && token) {
-        startNewConversation(userId);
-      }
+      if (userId && token) startNewConversation(userId);
     }
   }, [token]);
 
   useEffect(() => {
-    if (token && user) {
-      fetchConversations();
-    }
+    if (token && user) fetchConversations();
   }, [token, user]);
 
   useEffect(() => {
@@ -68,9 +66,9 @@ export default function MessagesPage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       
       const res = await fetch(`${baseUrl}/users/${userId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         const targetUser = data.user;
@@ -101,19 +99,18 @@ export default function MessagesPage() {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       const res = await fetch(`${baseUrl}/messages/conversations`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('Server returned non-JSON response');
         setBackendError(true);
         setLoading(false);
         return;
       }
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         setConversations(data.conversations || []);
         setError('');
@@ -139,23 +136,18 @@ export default function MessagesPage() {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       const res = await fetch(`${baseUrl}/messages/${userId}?limit=50`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('Server returned non-JSON response for messages');
         setError('Unable to load messages. Please try again.');
         return;
       }
-      
+
       const data = await res.json();
-      
-      if (res.ok) {
-        setMessages(data.messages || []);
-      } else {
-        setError(data.message || 'Failed to load messages');
-      }
+      if (res.ok) setMessages(data.messages || []);
+      else setError(data.message || 'Failed to load messages');
     } catch (err) {
       console.error('Error fetching messages:', err);
       setError('Failed to load messages');
@@ -167,7 +159,7 @@ export default function MessagesPage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       await fetch(`${baseUrl}/messages/${userId}/read`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchConversations();
     } catch (err) {
@@ -185,7 +177,7 @@ export default function MessagesPage() {
       const res = await fetch(`${baseUrl}/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -220,29 +212,25 @@ export default function MessagesPage() {
     const now = new Date();
     const diffInHours = (now - date) / (1000 * 60 * 60);
 
-    if (diffInHours < 24) {
+    if (diffInHours < 24)
       return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    } else if (diffInHours < 48) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
+    else if (diffInHours < 48) return 'Yesterday';
+    else return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  if (authLoading || loading) {
-    return <LoadingScreen />;
-  }
-
+  if (authLoading || loading) return <LoadingScreen />;
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <Sidebar />
 
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="h-screen flex flex-col">
           {/* Page Header */}
-          <div className="px-8 pt-8 border-b-2 border-gray-50">
+          <div className={`px-8 pt-8 border-b-2 ${
+            darkMode ? 'border-gray-800' : 'border-gray-50'
+          }`}>
             <PageHeader
               title="Messages"
               subtitle="Chat with your classmates"
@@ -251,8 +239,14 @@ export default function MessagesPage() {
 
           {/* Backend Error Warning */}
           {backendError && (
-            <div className="bg-yellow-50 border-b-2 border-yellow-100 px-8 py-4">
-              <div className="flex items-center gap-3 text-yellow-800">
+            <div className={`border-b-2 px-8 py-4 ${
+              darkMode 
+                ? 'bg-yellow-900/50 border-yellow-800' 
+                : 'bg-yellow-50 border-yellow-100'
+            }`}>
+              <div className={`flex items-center gap-3 ${
+                darkMode ? 'text-yellow-300' : 'text-yellow-800'
+              }`}>
                 <AlertCircle className="w-5 h-5" strokeWidth={2} />
                 <p className="text-sm font-medium">
                   Unable to connect to messaging service. Please make sure the backend is running on port 4000.
@@ -264,17 +258,29 @@ export default function MessagesPage() {
           {/* Messages Layout */}
           <div className="flex-1 flex overflow-hidden">
             {/* Conversations List */}
-            <div className="w-full sm:w-80 lg:w-96 border-r-2 border-gray-50 flex flex-col overflow-hidden">
-              <div className="p-6 border-b-2 border-gray-50">
-                <h2 className="text-xl font-semibold text-gray-900">Conversations</h2>
+            <div className={`w-full sm:w-80 lg:w-96 border-r-2 flex flex-col overflow-hidden ${
+              darkMode ? 'border-gray-800 bg-gray-800' : 'border-gray-50 bg-white'
+            }`}>
+              <div className={`p-6 border-b-2 ${
+                darkMode ? 'border-gray-700' : 'border-gray-50'
+              }`}>
+                <h2 className={`text-xl font-semibold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}>Conversations</h2>
               </div>
 
               <div className="flex-1 overflow-y-auto">
                 {conversations.length === 0 ? (
                   <div className="p-12 text-center">
-                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" strokeWidth={1.5} />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No messages yet</h3>
-                    <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
+                    <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
+                      darkMode ? 'text-gray-600' : 'text-gray-300'
+                    }`} strokeWidth={1.5} />
+                    <h3 className={`text-lg font-semibold mb-2 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>No messages yet</h3>
+                    <p className={`text-sm mb-6 max-w-xs mx-auto ${
+                      darkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       Start a conversation with your friends!
                     </p>
                     <button
@@ -290,10 +296,16 @@ export default function MessagesPage() {
                       <button
                         key={conversation.user._id}
                         onClick={() => setSelectedConversation(conversation)}
-                        className={`w-full p-5 hover:bg-gray-50 transition text-left border-b border-gray-50 ${
+                        className={`w-full p-5 transition text-left border-b ${
+                          darkMode ? 'border-gray-700' : 'border-gray-50'
+                        } ${
                           selectedConversation?.user._id === conversation.user._id
-                            ? 'bg-indigo-50 border-l-4 border-indigo-600'
-                            : ''
+                            ? darkMode
+                              ? 'bg-gray-700'
+                              : 'bg-indigo-50'
+                            : darkMode
+                            ? 'hover:bg-gray-700'
+                            : 'hover:bg-gray-50'
                         }`}
                       >
                         <div className="flex items-start gap-4">
@@ -304,20 +316,28 @@ export default function MessagesPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-semibold text-gray-900 truncate">
+                              <h3 className={`font-semibold truncate ${
+                                darkMode ? 'text-white' : 'text-gray-900'
+                              }`}>
                                 {conversation.user.name}
                               </h3>
                               {conversation.lastMessage && (
-                                <span className="text-xs text-gray-400 ml-2 flex-shrink-0 font-medium">
+                                <span className={`text-xs ml-2 flex-shrink-0 font-medium ${
+                                  darkMode ? 'text-gray-500' : 'text-gray-400'
+                                }`}>
                                   {formatTime(conversation.lastMessage.createdAt)}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-500 mb-2 truncate">
+                            <p className={`text-xs mb-2 truncate ${
+                              darkMode ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
                               {conversation.user.major}
                             </p>
                             {conversation.lastMessage && (
-                              <p className="text-sm text-gray-600 truncate">
+                              <p className={`text-sm truncate ${
+                                darkMode ? 'text-gray-300' : 'text-gray-600'
+                              }`}>
                                 {conversation.lastMessage.content}
                               </p>
                             )}
@@ -336,11 +356,15 @@ export default function MessagesPage() {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-white">
+            <div className={`flex-1 flex flex-col ${
+              darkMode ? 'bg-gray-900' : 'bg-white'
+            }`}>
               {selectedConversation ? (
                 <>
                   {/* Chat Header */}
-                  <div className="border-b-2 border-gray-50 px-8 py-6">
+                  <div className={`border-b-2 px-8 py-6 ${
+                    darkMode ? 'border-gray-800' : 'border-gray-50'
+                  }`}>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                         <span className="text-white font-semibold text-lg">
@@ -348,10 +372,14 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 text-lg">
+                        <h3 className={`font-semibold text-lg ${
+                          darkMode ? 'text-white' : 'text-gray-900'
+                        }`}>
                           {selectedConversation.user.name}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className={`text-sm ${
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
                           {selectedConversation.user.major}
                         </p>
                       </div>
@@ -363,8 +391,12 @@ export default function MessagesPage() {
                     {messages.length === 0 ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center">
-                          <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" strokeWidth={1.5} />
-                          <p className="text-gray-500 text-lg">
+                          <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
+                            darkMode ? 'text-gray-600' : 'text-gray-300'
+                          }`} strokeWidth={1.5} />
+                          <p className={`text-lg ${
+                            darkMode ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
                             {newChatUser 
                               ? `Start a conversation with ${selectedConversation.user.name}!`
                               : "Say hi to start the conversation!"
@@ -382,16 +414,22 @@ export default function MessagesPage() {
                               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                             >
                               <div
-                                className={`max-w-xs lg:max-w-md xl:max-w-lg ${
+                                className={`max-w-xs lg:max-w-md xl:max-w-lg rounded-3xl px-5 py-3 ${
                                   isCurrentUser
                                     ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                                    : darkMode
+                                    ? 'bg-gray-800 text-white'
                                     : 'bg-gray-50 text-gray-900'
-                                } rounded-3xl px-5 py-3`}
+                                }`}
                               >
                                 <p className="text-sm break-words leading-relaxed">{message.content}</p>
                                 <p
                                   className={`text-xs mt-2 font-medium ${
-                                    isCurrentUser ? 'text-indigo-100' : 'text-gray-400'
+                                    isCurrentUser 
+                                      ? 'text-indigo-100' 
+                                      : darkMode
+                                      ? 'text-gray-500'
+                                      : 'text-gray-400'
                                   }`}
                                 >
                                   {formatTime(message.createdAt)}
@@ -406,14 +444,20 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Message Input */}
-                  <div className="border-t-2 border-gray-50 p-6">
+                  <div className={`border-t-2 p-6 ${
+                    darkMode ? 'border-gray-800' : 'border-gray-50'
+                  }`}>
                     <form onSubmit={handleSendMessage} className="flex gap-3">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-indigo-300 focus:outline-none transition"
+                        className={`flex-1 px-5 py-4 border-2 rounded-2xl focus:outline-none transition ${
+                          darkMode
+                            ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500'
+                            : 'bg-white border-gray-100 text-gray-900 placeholder-gray-400 focus:border-indigo-300'
+                        }`}
                         disabled={sendingMessage}
                       />
                       <button
@@ -430,11 +474,17 @@ export default function MessagesPage() {
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
-                    <MessageCircle className="w-20 h-20 mx-auto mb-6 text-gray-300" strokeWidth={1.5} />
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+                    <MessageCircle className={`w-20 h-20 mx-auto mb-6 ${
+                      darkMode ? 'text-gray-600' : 'text-gray-300'
+                    }`} strokeWidth={1.5} />
+                    <h3 className={`text-2xl font-semibold mb-3 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
                       Select a conversation
                     </h3>
-                    <p className="text-gray-500 text-lg">
+                    <p className={`text-lg ${
+                      darkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       Choose a conversation from the list to start messaging
                     </p>
                   </div>
@@ -445,13 +495,21 @@ export default function MessagesPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="fixed bottom-8 right-8 bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-xl max-w-md z-50">
+            <div className={`fixed bottom-8 right-8 border-2 px-6 py-4 rounded-2xl shadow-xl max-w-md z-50 ${
+              darkMode
+                ? 'bg-red-900/90 border-red-700 text-red-200'
+                : 'bg-red-50 border-red-200 text-red-700'
+            }`}>
               <div className="flex items-center gap-3">
                 <AlertCircle className="w-5 h-5" strokeWidth={2} />
                 <span className="font-medium">{error}</span>
                 <button
                   onClick={() => setError('')}
-                  className="ml-2 text-red-900 hover:text-red-700 font-bold"
+                  className={`ml-2 font-bold ${
+                    darkMode
+                      ? 'text-red-200 hover:text-red-100'
+                      : 'text-red-900 hover:text-red-700'
+                  }`}
                 >
                   ✕
                 </button>

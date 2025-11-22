@@ -9,21 +9,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --profile-icon-color: #4a90e2;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --profile-icon-color: #8ab4f8;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   @apply bg-white text-gray-900;
@@ -74,3 +68,8 @@ body {
 .animate-slideUp {
   animation: slideUp 0.3s ease-out;
 }
+
+.profile-icon {
+  color: var(--profile-icon-color);
+  fill: var(--profile-icon-color);
+}  

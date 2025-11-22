@@ -3,6 +3,8 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { generateToken } from "../utils/genToken.js";
+import StudyGroup from "../models/StudyGroup.js";
+
 
 // @desc    Register a new user
 // @route   POST /api/users/register
@@ -267,5 +269,47 @@ export const searchUsers = async (req, res) => {
   } catch (err) {
     console.error("searchUsers error:", err);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getMyStudyGroups = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const groups = await StudyGroup.find({ members: userId })
+      .populate({
+        path: "class",
+        select: "code name members", 
+      })
+      .populate("members", "name email")
+      .sort({ scheduledAt: 1 }); 
+
+    return res.json({ groups });
+  } catch (error) {
+    console.error("getMyStudyGroups error:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch your study groups" });
+  }
+};
+
+export const updateIconColor = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { iconColor } = req.body;
+
+    if (!iconColor)
+      return res.status(400).json({ message: "iconColor is required" });
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { iconColor } },
+      { new: true }
+    ).select("-password");
+
+    res.json({ user: updatedUser });
+  } catch (err) {
+    console.error("updateIconColor error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

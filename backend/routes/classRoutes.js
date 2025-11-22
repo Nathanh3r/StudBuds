@@ -30,6 +30,14 @@ import {
   getUserStudyStats,
 } from "../controllers/studySessionController.js";
 
+import {
+  getStudyGroupsForClass,
+  createStudyGroup,
+  joinStudyGroup,
+  leaveStudyGroup,
+  deleteStudyGroup,
+} from "../controllers/studyGroupController.js";
+
 const router = express.Router();
 
 // Get __dirname equivalent in ES modules
@@ -124,5 +132,11 @@ router.post("/:classId/notes", protect, upload.single("file"), uploadNote);
 router.post("/:classId/study-sessions", protect, createStudySession);
 router.get("/:classId/study-sessions", protect, getClassStudySessions);
 router.get("/:classId/study-sessions/stats", protect, getUserStudyStats);
+// STUDY GROUPS
+router.get("/:id/study-groups", protect, getStudyGroupsForClass);
+router.post("/:id/study-groups", protect, createStudyGroup);
+router.post("/:id/study-groups/:groupId/join", protect, joinStudyGroup);
+router.post("/:id/study-groups/:groupId/leave", protect, leaveStudyGroup);
+router.delete("/:id/study-groups/:groupId", protect, deleteStudyGroup);
 
 export default router;

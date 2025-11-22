@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { Home, Compass, BookOpen, Users, MessageCircle, Settings, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar() { 
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
 
   const navItems = [
     { name: 'Home', href: '/dashboard', icon: Home },
@@ -25,17 +27,29 @@ export default function Sidebar() {
 
   if (isCollapsed) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl h-screen fixed left-0 top-0 w-20 flex flex-col border-r border-gray-100 z-50">
+      <div className={`h-screen fixed left-0 top-0 w-20 flex flex-col border-r z-50 transition-colors duration-300 ${
+        darkMode 
+          ? 'bg-gray-800/80 backdrop-blur-xl border-gray-700' 
+          : 'bg-white/80 backdrop-blur-xl border-gray-100'
+      }`}>
         {/* Profile (Collapsed) */}
         <Link
           href={user?._id ? `/profile/${user._id}` : '/dashboard'}
-          className="h-20 flex items-center justify-center border-b border-gray-100 hover:bg-indigo-50 transition-all"
+          className={`h-20 flex items-center justify-center border-b transition-all ${
+            darkMode 
+              ? 'border-gray-700 hover:bg-gray-700/50' 
+              : 'border-gray-100 hover:bg-indigo-50'
+          }`}
           title={user?.name || 'Profile'}
         >
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white font-medium text-lg shadow-lg shadow-indigo-500/20 relative">
             {user?.name?.charAt(0).toUpperCase() || 'U'}
             {/* Level Badge */}
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-purple-200 rounded-full border-2 border-white flex items-center justify-center">
+            <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+              darkMode 
+                ? 'bg-purple-300 border-gray-800' 
+                : 'bg-purple-200 border-white'
+            }`}>
               <span className="text-xs font-bold text-indigo-900">2</span>
             </div>
           </div>
@@ -52,6 +66,8 @@ export default function Sidebar() {
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 ${
                   isActive(item.href)
                     ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
+                    : darkMode
+                    ? 'text-gray-400 hover:text-indigo-400 hover:bg-gray-700/50'
                     : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50'
                 }`}
                 title={item.name}
@@ -65,7 +81,11 @@ export default function Sidebar() {
         {/* Expand */}
         <button
           onClick={() => setIsCollapsed(false)}
-          className="p-6 border-t border-gray-100 text-gray-400 hover:text-indigo-600 transition"
+          className={`p-6 border-t transition ${
+            darkMode 
+              ? 'border-gray-700 text-gray-400 hover:text-indigo-400' 
+              : 'border-gray-100 text-gray-400 hover:text-indigo-600'
+          }`}
         >
           <ChevronsRight className="w-6 h-6" strokeWidth={1.5} />
         </button>
@@ -74,11 +94,19 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl h-screen fixed left-0 top-0 w-64 flex flex-col border-r border-gray-100 z-50">
+    <div className={`h-screen fixed left-0 top-0 w-64 flex flex-col border-r z-50 transition-colors duration-300 ${
+      darkMode 
+        ? 'bg-gray-800/80 backdrop-blur-xl border-gray-700' 
+        : 'bg-white/80 backdrop-blur-xl border-gray-100'
+    }`}>
       {/* Profile Section */}
       <Link
         href={user?._id ? `/profile/${user._id}` : '/dashboard'}
-        className="h-24 px-6 flex items-center gap-3 border-b border-gray-100 hover:bg-indigo-50 transition-all duration-200 group"
+        className={`h-24 px-6 flex items-center gap-3 border-b transition-all duration-200 group ${
+          darkMode 
+            ? 'border-gray-700 hover:bg-gray-700/50' 
+            : 'border-gray-100 hover:bg-indigo-50'
+        }`}
       >
         {/* Profile Picture with Level Badge */}
         <div className="relative flex-shrink-0">
@@ -86,17 +114,25 @@ export default function Sidebar() {
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
           {/* Level Badge */}
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-200 rounded-full border-2 border-white flex items-center justify-center">
+          <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+            darkMode 
+              ? 'bg-purple-300 border-gray-800' 
+              : 'bg-purple-200 border-white'
+          }`}>
             <span className="text-xs font-bold text-indigo-900">2</span>
           </div>
         </div>
 
         {/* Name and Level */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 truncate text-base">
+          <p className={`font-semibold truncate text-base ${
+            darkMode ? 'text-white' : 'text-gray-900'
+          }`}>
             {user?.name || 'User'}
           </p>
-          <p className="text-sm text-gray-500">Level 2 Explorer</p>
+          <p className={`text-sm ${
+            darkMode ? 'text-gray-400' : 'text-gray-500'
+          }`}>Level 2 Explorer</p>
         </div>
 
         {/* Hover Arrow */}
@@ -116,6 +152,8 @@ export default function Sidebar() {
                   className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 group ${
                     isActive(item.href)
                       ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
+                      : darkMode
+                      ? 'text-gray-300 hover:text-indigo-400 hover:bg-gray-700/50'
                       : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
                   }`}
                 >
@@ -131,7 +169,11 @@ export default function Sidebar() {
       {/* Collapse */}
       <button
         onClick={() => setIsCollapsed(true)}
-        className="p-4 border-t border-gray-100 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition"
+        className={`p-4 border-t flex items-center justify-center transition ${
+          darkMode 
+            ? 'border-gray-700 text-gray-400 hover:text-indigo-400' 
+            : 'border-gray-100 text-gray-400 hover:text-indigo-600'
+        }`}
       >
         <ChevronsLeft className="w-5 h-5" strokeWidth={1.5} />
       </button>

@@ -11,6 +11,7 @@ import path from "path";
 import { protect } from "./middleware/authMiddleware.js";
 import { trackDownload } from "./controllers/noteController.js";
 import { fileURLToPath } from "url";
+import studyGroupRoutes from "./routes/studyGroupRoutes.js";
 
 dotenv.config();
 
@@ -50,6 +51,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/study-sessions", studySessionRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/study-groups", studyGroupRoutes);
 
 // Start server
 app.listen(PORT, () => {

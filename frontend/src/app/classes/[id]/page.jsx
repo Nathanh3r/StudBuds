@@ -3,7 +3,8 @@
 
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
-import { useRouter, useParams } from 'next/navigation';
+import { useDarkMode } from '../../context/DarkModeContext';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import LoadingScreen from '../../components/LoadingScreen';
 import Sidebar from '../../components/Sidebar';
@@ -15,18 +16,24 @@ import StudyFeed from '../../components/course-detail/StudyFeed';
 import CourseChat from '../../components/course-detail/CourseChat';
 import CoursePeople from '../../components/course-detail/CoursePeople';
 import StudyGroups from '../../components/course-detail/StudyGroups';
-import AddNoteModal from '../../components/course-detail/AddNoteModal';
 import Link from 'next/link';
   
 export default function CourseDetailPage() {
   const { token, user, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  
   const classId = params.id;
-
+  
+  const initialTabFromUrl = searchParams?.get('tab');
+  const initialTab =
+    initialTabFromUrl === 'study-groups' ? 'study-groups' : 'overview';
+  
   const [classData, setClassData] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -101,14 +108,16 @@ export default function CourseDetailPage() {
   // Error state
   if (error && !classData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <Sidebar />
         <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center max-w-md">
               <div className="text-6xl mb-4">😕</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Not Found</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
+              <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Course Not Found
+              </h2>
+              <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{error}</p>
               <Link 
                 href="/discover"
                 className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition"
@@ -127,7 +136,7 @@ export default function CourseDetailPage() {
   const isCurrentUserMember = classData.isCurrentUserMember;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Sidebar />
 
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
@@ -150,7 +159,9 @@ export default function CourseDetailPage() {
           ) : (
             <>
               {/* Tabs */}
-              <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+              <div className={`mb-6 border-b overflow-x-auto ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              }`}>
                 <div className="flex gap-4 sm:gap-8 min-w-max sm:min-w-0">
                   {tabs.map((tab) => (
                     <button
@@ -159,6 +170,8 @@ export default function CourseDetailPage() {
                       className={`pb-3 px-1 font-medium transition relative whitespace-nowrap ${
                         activeTab === tab.id
                           ? 'text-indigo-600'
+                          : darkMode
+                          ? 'text-gray-400 hover:text-gray-200'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
@@ -178,7 +191,14 @@ export default function CourseDetailPage() {
                 {activeTab === 'study-feed' && <StudyFeed classId={classId} token={token} baseUrl={baseUrl} />}
                 {activeTab === 'chat' && <CourseChat classId={classId} token={token} baseUrl={baseUrl} />}
                 {activeTab === 'people' && <CoursePeople classId={classId} token={token} baseUrl={baseUrl} />}
-                {activeTab === 'study-groups' && <StudyGroups classId={classId} token={token} baseUrl={baseUrl} />}
+                {activeTab === 'study-groups' && (
+                  <StudyGroups 
+                    classId={classId} 
+                    token={token} 
+                    baseUrl={baseUrl}
+                    user={user}
+                  />
+                )}
               </div>
             </>
           )}

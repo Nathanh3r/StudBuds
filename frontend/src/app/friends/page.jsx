@@ -3,6 +3,7 @@
 
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
@@ -13,6 +14,7 @@ import { Search, UserPlus, Users, MessageCircle, User, AlertCircle, Check } from
 export default function FriendsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
   const router = useRouter();
   
   const [friends, setFriends] = useState([]);
@@ -24,15 +26,11 @@ export default function FriendsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!authLoading && !token) {
-      router.push('/login');
-    }
+    if (!authLoading && !token) router.push('/login');
   }, [authLoading, token, router]);
 
   useEffect(() => {
-    if (token && user) {
-      fetchFriends();
-    }
+    if (token && user) fetchFriends();
   }, [token, user]);
 
   const fetchFriends = async () => {
@@ -42,12 +40,8 @@ export default function FriendsPage() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
-      
-      if (res.ok) {
-        setFriends(data.friends || []);
-      } else {
-        setError(data.message || 'Failed to load friends');
-      }
+      if (res.ok) setFriends(data.friends || []);
+      else setError(data.message || 'Failed to load friends');
     } catch (err) {
       console.error('Error fetching friends:', err);
       setError('Failed to load friends');
@@ -62,20 +56,18 @@ export default function FriendsPage() {
 
     setSearchLoading(true);
     setError('');
-    
+
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       const res = await fetch(`${baseUrl}/users/search?q=${encodeURIComponent(searchQuery)}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
-      
+
       if (res.ok) {
         setSearchResults(data.users || []);
         setActiveTab('search');
-      } else {
-        setError(data.message || 'Search failed');
-      }
+      } else setError(data.message || 'Search failed');
     } catch (err) {
       console.error('Error searching users:', err);
       setError('Search failed');
@@ -91,7 +83,6 @@ export default function FriendsPage() {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      
       if (res.ok) {
         await fetchFriends();
         setSearchResults(searchResults.filter(u => u._id !== userId));
@@ -114,10 +105,8 @@ export default function FriendsPage() {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      
-      if (res.ok) {
-        await fetchFriends();
-      } else {
+      if (res.ok) await fetchFriends();
+      else {
         const data = await res.json();
         setError(data.message || 'Failed to remove friend');
       }
@@ -138,7 +127,7 @@ export default function FriendsPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <Sidebar />
 
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
@@ -153,13 +142,19 @@ export default function FriendsPage() {
           <div className="mb-12">
             <form onSubmit={handleSearch} className="flex gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" strokeWidth={2} />
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-gray-500' : 'text-gray-400'
+                }`} strokeWidth={2} />
                 <input
                   type="text"
                   placeholder="Search by name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 rounded-2xl focus:border-indigo-300 focus:outline-none transition text-lg"
+                  className={`w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:outline-none transition text-lg ${
+                    darkMode 
+                      ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500' 
+                      : 'bg-white border-gray-100 text-gray-900 placeholder-gray-400 focus:border-indigo-300'
+                  }`}
                 />
               </div>
               <button
@@ -175,20 +170,28 @@ export default function FriendsPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-8 bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center gap-3">
+            <div className={`mb-8 border-2 px-6 py-4 rounded-2xl flex items-center gap-3 ${
+              darkMode 
+                ? 'bg-red-900/50 border-red-700 text-red-200' 
+                : 'bg-red-50 border-red-200 text-red-700'
+            }`}>
               <AlertCircle className="w-5 h-5" strokeWidth={2} />
               <span className="font-medium">{error}</span>
             </div>
           )}
 
           {/* Tabs */}
-          <div className="mb-8 border-b-2 border-gray-50">
+          <div className={`mb-8 border-b-2 ${
+            darkMode ? 'border-gray-800' : 'border-gray-50'
+          }`}>
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab('friends')}
                 className={`pb-4 px-1 font-semibold transition relative ${
                   activeTab === 'friends'
                     ? 'text-indigo-600'
+                    : darkMode
+                    ? 'text-gray-400 hover:text-gray-200'
                     : 'text-gray-400 hover:text-gray-900'
                 }`}
               >
@@ -203,6 +206,8 @@ export default function FriendsPage() {
                   className={`pb-4 px-1 font-semibold transition relative ${
                     activeTab === 'search'
                       ? 'text-indigo-600'
+                      : darkMode
+                      ? 'text-gray-400 hover:text-gray-200'
                       : 'text-gray-400 hover:text-gray-900'
                   }`}
                 >
@@ -219,10 +224,18 @@ export default function FriendsPage() {
           {activeTab === 'friends' && (
             <div>
               {friends.length === 0 ? (
-                <div className="bg-gray-50 rounded-3xl p-20 text-center">
-                  <Users className="w-20 h-20 mx-auto mb-6 text-gray-300" strokeWidth={1.5} />
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">No friends yet</h3>
-                  <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">
+                <div className={`rounded-3xl p-20 text-center ${
+                  darkMode ? 'bg-gray-800' : 'bg-gray-50'
+                }`}>
+                  <Users className={`w-20 h-20 mx-auto mb-6 ${
+                    darkMode ? 'text-gray-600' : 'text-gray-300'
+                  }`} strokeWidth={1.5} />
+                  <h3 className={`text-2xl font-semibold mb-3 ${
+                    darkMode ? 'text-white' : 'text-gray-900'
+                  }`}>No friends yet</h3>
+                  <p className={`mb-8 max-w-md mx-auto text-lg ${
+                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
                     Search for classmates to connect with and start studying together
                   </p>
                 </div>
@@ -231,7 +244,11 @@ export default function FriendsPage() {
                   {friends.map((friend) => (
                     <div
                       key={friend._id}
-                      className="bg-white border-2 border-gray-100 rounded-3xl p-6 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300"
+                      className={`border-2 rounded-3xl p-6 transition-all duration-300 ${
+                        darkMode 
+                          ? 'bg-gray-800 border-gray-700 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10' 
+                          : 'bg-white border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10'
+                      }`}
                     >
                       <div className="flex items-start gap-4 mb-4">
                         <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
@@ -240,16 +257,22 @@ export default function FriendsPage() {
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 text-lg mb-1 truncate">
+                          <h3 className={`font-semibold text-lg mb-1 truncate ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                          }`}>
                             {friend.name}
                           </h3>
                           <p className="text-sm text-indigo-600 mb-1 truncate font-medium">{friend.major}</p>
-                          <p className="text-xs text-gray-400 truncate">{friend.email}</p>
+                          <p className={`text-xs truncate ${
+                            darkMode ? 'text-gray-500' : 'text-gray-400'
+                          }`}>{friend.email}</p>
                         </div>
                       </div>
                       
                       {friend.bio && (
-                        <p className="text-sm text-gray-600 mb-6 line-clamp-2 leading-relaxed">{friend.bio}</p>
+                        <p className={`text-sm mb-6 line-clamp-2 leading-relaxed ${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}>{friend.bio}</p>
                       )}
 
                       <div className="space-y-2">
@@ -263,7 +286,11 @@ export default function FriendsPage() {
                           </button>
                           <button
                             onClick={() => router.push(`/profile/${friend._id}`)}
-                            className="bg-indigo-50 text-indigo-600 font-medium px-4 py-3 rounded-xl transition hover:bg-indigo-100 text-sm flex items-center justify-center gap-2"
+                            className={`font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 ${
+                              darkMode 
+                                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                            }`}
                           >
                             <User className="w-4 h-4" strokeWidth={2} />
                             Profile
@@ -271,7 +298,11 @@ export default function FriendsPage() {
                         </div>
                         <button
                           onClick={() => handleRemoveFriend(friend._id)}
-                          className="w-full bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-600 font-medium px-4 py-3 rounded-xl transition text-sm"
+                          className={`w-full font-medium px-4 py-3 rounded-xl transition text-sm ${
+                            darkMode 
+                              ? 'bg-gray-700 hover:bg-red-900 text-gray-300 hover:text-red-200' 
+                              : 'bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-600'
+                          }`}
                         >
                           Remove Friend
                         </button>
@@ -287,22 +318,33 @@ export default function FriendsPage() {
           {activeTab === 'search' && (
             <div>
               {searchResults.length === 0 ? (
-                <div className="bg-gray-50 rounded-3xl p-20 text-center">
-                  <Search className="w-20 h-20 mx-auto mb-6 text-gray-300" strokeWidth={1.5} />
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">No results found</h3>
-                  <p className="text-gray-500 text-lg">
+                <div className={`rounded-3xl p-20 text-center ${
+                  darkMode ? 'bg-gray-800' : 'bg-gray-50'
+                }`}>
+                  <Search className={`w-20 h-20 mx-auto mb-6 ${
+                    darkMode ? 'text-gray-600' : 'text-gray-300'
+                  }`} strokeWidth={1.5} />
+                  <h3 className={`text-2xl font-semibold mb-3 ${
+                    darkMode ? 'text-white' : 'text-gray-900'
+                  }`}>No results found</h3>
+                  <p className={`text-lg ${
+                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
                     Try searching with a different name or email
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {searchResults.map((searchUser) => {
+                  {searchResults.map(searchUser => {
                     const isFriend = friends.some(f => f._id === searchUser._id);
-                    
                     return (
                       <div
                         key={searchUser._id}
-                        className="bg-white border-2 border-gray-100 rounded-3xl p-6 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300"
+                        className={`border-2 rounded-3xl p-6 transition-all duration-300 ${
+                          darkMode 
+                            ? 'bg-gray-800 border-gray-700 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10' 
+                            : 'bg-white border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10'
+                        }`}
                       >
                         <div className="flex items-start gap-4 mb-4">
                           <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
@@ -311,22 +353,32 @@ export default function FriendsPage() {
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 text-lg mb-1 truncate">
+                            <h3 className={`font-semibold text-lg mb-1 truncate ${
+                              darkMode ? 'text-white' : 'text-gray-900'
+                            }`}>
                               {searchUser.name}
                             </h3>
                             <p className="text-sm text-indigo-600 mb-1 truncate font-medium">{searchUser.major}</p>
-                            <p className="text-xs text-gray-400 truncate">{searchUser.email}</p>
+                            <p className={`text-xs truncate ${
+                              darkMode ? 'text-gray-500' : 'text-gray-400'
+                            }`}>{searchUser.email}</p>
                           </div>
                         </div>
                         
                         {searchUser.bio && (
-                          <p className="text-sm text-gray-600 mb-6 line-clamp-2 leading-relaxed">{searchUser.bio}</p>
+                          <p className={`text-sm mb-6 line-clamp-2 leading-relaxed ${
+                            darkMode ? 'text-gray-300' : 'text-gray-600'
+                          }`}>{searchUser.bio}</p>
                         )}
 
                         <div className="flex gap-2">
                           <button
                             onClick={() => router.push(`/profile/${searchUser._id}`)}
-                            className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2"
+                            className={`flex-1 font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 ${
+                              darkMode 
+                                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                            }`}
                           >
                             <User className="w-4 h-4" strokeWidth={2} />
                             View Profile
@@ -334,7 +386,11 @@ export default function FriendsPage() {
                           {isFriend ? (
                             <button
                               disabled
-                              className="bg-green-50 text-green-700 font-medium px-5 py-3 rounded-xl text-sm cursor-not-allowed flex items-center gap-2"
+                              className={`font-medium px-5 py-3 rounded-xl text-sm cursor-not-allowed flex items-center gap-2 ${
+                                darkMode 
+                                  ? 'bg-green-900/50 text-green-300' 
+                                  : 'bg-green-50 text-green-700'
+                              }`}
                             >
                               <Check className="w-4 h-4" strokeWidth={2} />
                               Friends

@@ -20,28 +20,27 @@ export default function UserProfilePage() {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Redirect if not authenticated
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('darkMode') === 'true' : false
+  );
+
   useEffect(() => {
-    if (!authLoading && !token) {
-      router.push('/login');
-    }
+    if (!authLoading && !token) router.push('/login');
   }, [authLoading, token, router]);
 
-  // Fetch user profile
   useEffect(() => {
-    if (token && userId) {
-      fetchUserProfile();
-    }
+    if (token && userId) fetchUserProfile();
   }, [token, userId]);
 
   const fetchUserProfile = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       const res = await fetch(`${baseUrl}/users/${userId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      
+
       if (res.ok) {
         setProfileUser(data.user);
       } else {
@@ -61,11 +60,10 @@ export default function UserProfilePage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       const res = await fetch(`${baseUrl}/users/add-friend/${userId}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (res.ok) {
-        // Refresh profile to update isFriend status
         await fetchUserProfile();
       } else {
         const data = await res.json();
@@ -87,11 +85,10 @@ export default function UserProfilePage() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
       const res = await fetch(`${baseUrl}/users/remove-friend/${userId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (res.ok) {
-        // Refresh profile to update isFriend status
         await fetchUserProfile();
       } else {
         const data = await res.json();
@@ -105,19 +102,17 @@ export default function UserProfilePage() {
     }
   };
 
-  if (authLoading || loading) {
-    return <LoadingScreen />;
-  }
+  if (authLoading || loading) return <LoadingScreen />;
 
   if (error && !profileUser) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className={`${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen flex`}>
         <Sidebar />
         <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center max-w-md">
               <div className="text-xl text-red-600 mb-4">Error Loading Profile</div>
-              <div className="text-gray-600 mb-4">{error}</div>
+              <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>{error}</div>
             </div>
           </div>
         </div>
@@ -130,36 +125,27 @@ export default function UserProfilePage() {
   const isOwnProfile = currentUser._id === profileUser._id;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+    <div className={`${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen flex`}>
       <Sidebar />
 
-      {/* Main Content */}
-      <div
-        className={`flex-1 transition-all duration-300 ${
-          isCollapsed ? 'ml-20' : 'ml-64'
-        }`}
-      >
+      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
           {/* Profile Header */}
-          <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-sm p-8 mb-6`}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               {/* Avatar */}
               <div className="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-semibold text-4xl">
-                  {profileUser.name.charAt(0).toUpperCase()}
-                </span>
+                <span className="text-white font-semibold text-4xl">{profileUser.name.charAt(0).toUpperCase()}</span>
               </div>
 
               {/* User Info */}
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{profileUser.name}</h1>
+                <h1 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} text-3xl font-bold mb-2`}>{profileUser.name}</h1>
                 <p className="text-lg text-indigo-600 mb-2">{profileUser.major}</p>
-                <p className="text-gray-600">{profileUser.email}</p>
+                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{profileUser.email}</p>
               </div>
 
-              {/* Action Button */}
+              {/* Action Buttons */}
               {!isOwnProfile && (
                 <div className="flex gap-2">
                   <button
@@ -191,65 +177,44 @@ export default function UserProfilePage() {
 
             {/* Bio */}
             {profileUser.bio && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
-                <p className="text-gray-700">{profileUser.bio}</p>
+              <div className={`mt-6 pt-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h2 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} text-lg font-semibold mb-2`}>About</h2>
+                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{profileUser.bio}</p>
               </div>
             )}
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">👥</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{profileUser.friendCount || 0}</p>
-                  <p className="text-sm text-gray-600">Friends</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">📚</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{profileUser.classCount || 0}</p>
-                  <p className="text-sm text-gray-600">Classes</p>
+            {[
+              { icon: '👥', value: profileUser.friendCount || 0, label: 'Friends', bg: 'bg-indigo-100', text: 'text-gray-900' },
+              { icon: '📚', value: profileUser.classCount || 0, label: 'Classes', bg: 'bg-green-100', text: 'text-gray-900' },
+              { icon: '⚡', value: 'Level 2', label: 'Progress', bg: 'bg-yellow-100', text: 'text-gray-900' },
+            ].map((card, idx) => (
+              <div key={idx} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-sm p-6`}>
+                <div className="flex items-center gap-3">
+                  <div className={`${card.bg} rounded-lg w-12 h-12 flex items-center justify-center`}>
+                    <span className="text-2xl">{card.icon}</span>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{card.value}</p>
+                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>{card.label}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">Level 2</p>
-                  <p className="text-sm text-gray-600">Progress</p>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Additional Info */}
           {isOwnProfile && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-sm p-6`}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Your Profile</h2>
-                <Link
-                  href="/settings"
-                  className="text-indigo-600 hover:text-indigo-700 font-medium"
-                >
+                <h2 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} text-xl font-bold`}>Your Profile</h2>
+                <Link href="/settings" className="text-indigo-600 hover:text-indigo-700 font-medium">
                   Edit Profile
                 </Link>
               </div>
-              <p className="text-gray-600">
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 This is how other students see your profile. You can edit your information in Settings.
               </p>
             </div>
@@ -257,7 +222,7 @@ export default function UserProfilePage() {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-6">
+            <div className={`${darkMode ? 'bg-red-800 text-red-200 border-red-700' : 'bg-red-50 text-red-700 border-red-200'} border px-4 py-3 rounded-lg mt-6`}>
               {error}
             </div>
           )}

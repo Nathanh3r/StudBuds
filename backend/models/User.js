@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema(
         message: "Email must be a valid .edu email address",
       },
     },
+    iconColor: {
+      type: String,
+      default: "#4f46e5",
+    },
     password: {
       type: String,
       required: true,

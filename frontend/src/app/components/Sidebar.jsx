@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
+import { useDarkMode } from '../context/DarkModeContext';
 
-export default function Sidebar() {
+export default function Sidebar() { 
   const pathname = usePathname();
   const { user } = useAuth();
   const { isCollapsed, setIsCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
@@ -23,13 +25,15 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`bg-white h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col transition-all duration-300 z-50 ${
+      className={`h-screen fixed left-0 top-0 flex flex-col transition-all duration-300 z-50 border-r ${
         isCollapsed ? 'w-20' : 'w-64'
-      }`}
+      } ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
     >
-      <Link 
+      <Link
         href={user?._id ? `/profile/${user._id}` : '/dashboard'}
-        className={`border-b border-gray-200 transition-all duration-300 ${isCollapsed ? 'p-4' : 'p-6'} hover:bg-gray-50 cursor-pointer block`}
+        className={`transition-all duration-300 ${isCollapsed ? 'p-4' : 'p-6'} hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer block border-b ${
+          darkMode ? 'border-gray-700' : 'border-gray-200'
+        }`}
         title={isCollapsed ? 'View your profile' : ''}
       >
         <div className="flex items-center gap-3">
@@ -40,8 +44,10 @@ export default function Sidebar() {
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0 overflow-hidden">
-              <p className="font-semibold text-gray-900 truncate">{user?.name || 'User'}</p>
-              <p className="text-sm text-gray-500">Level 2</p>
+              <p className={`font-semibold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                {user?.name || 'User'}
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Level 2</p>
             </div>
           )}
         </div>
@@ -54,11 +60,14 @@ export default function Sidebar() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg transition ${
-                  isActive(item.href)
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg transition
+                  ${
+                    isActive(item.href)
+                      ? 'bg-indigo-600 text-white'
+                      : darkMode
+                      ? 'text-gray-300 hover:bg-gray-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
                 title={isCollapsed ? item.name : ''}
               >
                 <span className="text-xl">{item.icon}</span>
@@ -70,10 +79,11 @@ export default function Sidebar() {
       </nav>
 
       {/* Toggle Button */}
-      <div className="p-4 border-t border-gray-200">
+      <div className={`p-4 border-t transition-colors duration-300 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition`}
+          className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg transition
+            ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'}`}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <span className="text-xl">{isCollapsed ? '→' : '←'}</span>

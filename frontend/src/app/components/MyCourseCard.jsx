@@ -1,6 +1,6 @@
 // components/MyCourseCard.jsx
 'use client';
-
+import { Calendar, User, Clock, MapPin, ChevronRight, BookOpen,BookText } from 'lucide-react';
 import Link from 'next/link';
 
 export default function MyCourseCard({ course }) {
@@ -71,7 +71,7 @@ export default function MyCourseCard({ course }) {
           {/* Left side - Course Icon & Code */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white flex-shrink-0">
             <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-3">
-              <span className="text-4xl">📚</span>
+              <BookText className="w-8 h-8 text-white" strokeWidth={2} />
             </div>
             <h3 className="text-2xl font-bold text-center mb-1">{course.code}</h3>
             {course.units && (
@@ -124,7 +124,7 @@ export default function MyCourseCard({ course }) {
               {course.term && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
                   <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">📅</span>
+                    <Calendar className="w-5 h-5 text-blue-600" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-500">Term</p>
@@ -137,7 +137,7 @@ export default function MyCourseCard({ course }) {
               {course.instructor?.name && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
                   <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">👨‍🏫</span>
+                    <User className="w-5 h-5 text-purple-600" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-500">Instructor</p>
@@ -150,7 +150,7 @@ export default function MyCourseCard({ course }) {
               {meetingDisplay && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
                   <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">🕐</span>
+                    <Clock className="w-5 h-5 text-green-600" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-500">Schedule</p>
@@ -166,7 +166,7 @@ export default function MyCourseCard({ course }) {
             {locationDisplay && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>📍</span>
+                    <MapPin className="w-5 h-5 text-gray-400" strokeWidth={2} />
                   <span className="truncate">{locationDisplay}</span>
                 </div>
               </div>

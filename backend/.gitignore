@@ -29,6 +29,7 @@ studbuds_courses*.json
 new_studbuds_courses.json
 course_descriptions.json
 
+uploads/
 # Backup Files
 backups/
 *.backup.json

@@ -141,8 +141,8 @@ export default function FriendsPage() {
     <div className="min-h-screen bg-white flex">
       <Sidebar />
 
-      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-72'}`}>
-        <div className="max-w-7xl mx-auto px-8 py-16">
+      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
+        <div className="max-w-7xl mx-auto px-8 pt-8 pb-16">
           {/* Page Header */}
           <PageHeader
             title="Friends"

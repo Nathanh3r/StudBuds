@@ -10,6 +10,7 @@ import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
 import MyCourseCard from '../components/MyCourseCard';
+import { BookOpen, ChevronRight } from 'lucide-react';
 
 export default function MyCoursesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -73,18 +74,30 @@ export default function MyCoursesPage() {
 
           {/* Courses List */}
           {myCourses.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-              <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No courses yet</h3>
-              <p className="text-gray-600 mb-6">
-                Start by discovering and joining courses that interest you
-              </p>
-              <Link
-                href="/discover"
-                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition"
-              >
-                Browse Courses
-              </Link>
+            <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl p-20 text-center border-2 border-indigo-100">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                  <BookOpen className="w-48 h-48 text-indigo-600" strokeWidth={1} />
+                </div>
+                <div className="relative z-10">
+                  <div className="bg-white w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <BookOpen className="w-10 h-10 text-indigo-600" strokeWidth={2} />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+                    No courses yet
+                  </h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    Start by discovering and joining courses that interest you
+                  </p>
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-8 py-4 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:scale-105"
+                  >
+                    Browse Courses
+                    <ChevronRight className="w-5 h-5" strokeWidth={2} />
+                  </Link>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="flex flex-wrap gap-3">

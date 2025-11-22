@@ -26,41 +26,122 @@ import {
 } from 'lucide-react';
 
 export default function ClassCard({ course }) {
-  const getSubjectIcon = (department) => {
+  const getSubjectConfig = (department) => {
     const dept = department?.toUpperCase() || '';
     
-    const icons = {
-      'BIOL': Dna,
-      'CHEM': FlaskConical,
-      'CS': Code,
-      'CSE': Code,
-      'MATH': Calculator,
-      'PSYC': Brain,
-      'PHYS': Zap,
-      'ECON': TrendingUp,
-      'GEOG': Globe,
-      'HIST': Landmark,
-      'ENGL': Pencil,
-      'SPAN': Languages,
-      'FREN': Languages,
-      'ART': Palette,
-      'MUS': Music,
-      'LAW': Scale,
-      'ENGR': Building2,
-      'PE': Activity,
-      'BCOE': Building2,
+    const configs = {
+      'BIOL': { 
+        icon: Dna, 
+        iconColor: 'text-emerald-600',
+        iconBg: 'bg-emerald-50',
+      },
+      'CHEM': { 
+        icon: FlaskConical, 
+        iconColor: 'text-violet-600',
+        iconBg: 'bg-violet-50',
+      },
+      'CS': { 
+        icon: Code, 
+        iconColor: 'text-blue-600',
+        iconBg: 'bg-blue-50',
+      },
+      'CSE': { 
+        icon: Code, 
+        iconColor: 'text-blue-600',
+        iconBg: 'bg-blue-50',
+      },
+      'MATH': { 
+        icon: Calculator, 
+        iconColor: 'text-amber-600',
+        iconBg: 'bg-amber-50',
+      },
+      'PSYC': { 
+        icon: Brain, 
+        iconColor: 'text-pink-600',
+        iconBg: 'bg-pink-50',
+      },
+      'PHYS': { 
+        icon: Zap, 
+        iconColor: 'text-yellow-600',
+        iconBg: 'bg-yellow-50',
+      },
+      'ECON': { 
+        icon: TrendingUp, 
+        iconColor: 'text-green-600',
+        iconBg: 'bg-green-50',
+      },
+      'GEOG': { 
+        icon: Globe, 
+        iconColor: 'text-teal-600',
+        iconBg: 'bg-teal-50',
+      },
+      'HIST': { 
+        icon: Landmark, 
+        iconColor: 'text-stone-600',
+        iconBg: 'bg-stone-50',
+      },
+      'ENGL': { 
+        icon: Pencil, 
+        iconColor: 'text-indigo-600',
+        iconBg: 'bg-indigo-50',
+      },
+      'SPAN': { 
+        icon: Languages, 
+        iconColor: 'text-red-600',
+        iconBg: 'bg-red-50',
+      },
+      'FREN': { 
+        icon: Languages, 
+        iconColor: 'text-blue-600',
+        iconBg: 'bg-blue-50',
+      },
+      'ART': { 
+        icon: Palette, 
+        iconColor: 'text-fuchsia-600',
+        iconBg: 'bg-fuchsia-50',
+      },
+      'MUS': { 
+        icon: Music, 
+        iconColor: 'text-purple-600',
+        iconBg: 'bg-purple-50',
+      },
+      'LAW': { 
+        icon: Scale, 
+        iconColor: 'text-slate-600',
+        iconBg: 'bg-slate-50',
+      },
+      'ENGR': { 
+        icon: Building2, 
+        iconColor: 'text-orange-600',
+        iconBg: 'bg-orange-50',
+      },
+      'PE': { 
+        icon: Activity, 
+        iconColor: 'text-lime-600',
+        iconBg: 'bg-lime-50',
+      },
+      'BCOE': { 
+        icon: Building2, 
+        iconColor: 'text-sky-600',
+        iconBg: 'bg-sky-50',
+      },
     };
 
-    for (const [key, icon] of Object.entries(icons)) {
+    for (const [key, config] of Object.entries(configs)) {
       if (dept.startsWith(key)) {
-        return icon;
+        return config;
       }
     }
 
-    return BookOpen;
+    return {
+      icon: BookOpen,
+      iconColor: 'text-gray-600',
+      iconBg: 'bg-gray-50',
+    };
   };
 
-  const SubjectIcon = getSubjectIcon(course.department);
+  const subjectConfig = getSubjectConfig(course.department);
+  const SubjectIcon = subjectConfig.icon;
 
   return (
     <Link href={`/classes/${course._id}`}>
@@ -69,9 +150,9 @@ export default function ClassCard({ course }) {
         {/* Icon and Course Code */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            {/* Subject Icon - All use same gradient */}
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0 group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:shadow-lg transition-all">
-              <SubjectIcon className="w-6 h-6 text-indigo-600 group-hover:text-white transition-all" strokeWidth={2} />
+            {/* Subject Icon - Unique colors that become unified purple gradient on hover */}
+            <div className={`w-12 h-12 rounded-2xl ${subjectConfig.iconBg} flex items-center justify-center flex-shrink-0 group-hover:bg-gradient-to-br group-hover:from-indigo-500 group-hover:via-purple-600 group-hover:to-indigo-700 group-hover:shadow-lg transition-all`}>
+              <SubjectIcon className={`w-6 h-6 ${subjectConfig.iconColor} group-hover:text-white transition-all`} strokeWidth={2} />
             </div>
             
             {/* Course Code */}

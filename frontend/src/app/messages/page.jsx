@@ -239,10 +239,10 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-white flex">
       <Sidebar />
 
-      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-72'}`}>
+      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="h-screen flex flex-col">
           {/* Page Header */}
-          <div className="px-8 py-8 border-b-2 border-gray-50">
+          <div className="px-8 pt-8 border-b-2 border-gray-50">
             <PageHeader
               title="Messages"
               subtitle="Chat with your classmates"

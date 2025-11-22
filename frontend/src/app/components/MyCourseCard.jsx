@@ -1,6 +1,30 @@
 // components/MyCourseCard.jsx
 'use client';
-import { Calendar, User, Clock, MapPin, ChevronRight, BookOpen,BookText } from 'lucide-react';
+import { 
+  Calendar, 
+  User, 
+  Clock, 
+  MapPin, 
+  ChevronRight, 
+  BookOpen,
+  BookText,
+  Dna,           
+  FlaskConical,   
+  Code,          
+  Calculator,    
+  Brain,         
+  Zap,           
+  TrendingUp,    
+  Globe,         
+  Landmark,      
+  Languages,     
+  Palette,       
+  Music,         
+  Scale,         
+  Building2,     
+  Pencil,        
+  Activity,      
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function MyCourseCard({ course }) {
@@ -9,8 +33,126 @@ export default function MyCourseCard({ course }) {
     return null;
   }
 
+  // Get subject-specific icon and colors
+  const getSubjectConfig = (department) => {
+    const dept = department?.toUpperCase() || '';
+    
+    const configs = {
+      'BIOL': { 
+        icon: Dna, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'CHEM': { 
+        icon: FlaskConical, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'CS': { 
+        icon: Code, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'CSE': { 
+        icon: Code, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'MATH': { 
+        icon: Calculator, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'PSYC': { 
+        icon: Brain, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'PHYS': { 
+        icon: Zap, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'ECON': { 
+        icon: TrendingUp, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'GEOG': { 
+        icon: Globe, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'HIST': { 
+        icon: Landmark, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'ENGL': { 
+        icon: Pencil, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'SPAN': { 
+        icon: Languages, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'FREN': { 
+        icon: Languages, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'ART': { 
+        icon: Palette, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'MUS': { 
+        icon: Music, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'LAW': { 
+        icon: Scale, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'ENGR': { 
+        icon: Building2, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'PE': { 
+        icon: Activity, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+      'BCOE': { 
+        icon: Building2, 
+        iconColor: 'text-white',
+        iconBg: 'bg-white/20',
+      },
+    };
+
+    for (const [key, config] of Object.entries(configs)) {
+      if (dept.startsWith(key)) {
+        return config;
+      }
+    }
+
+    return {
+      icon: BookText,
+      iconColor: 'text-white',
+      iconBg: 'bg-white/20',
+    };
+  };
+
+  const subjectConfig = getSubjectConfig(course.department);
+  const SubjectIcon = subjectConfig.icon;
+
   // Helper function to abbreviate day names
-    const abbreviateDay = (day) => {
+  const abbreviateDay = (day) => {
     const dayMap = {
       'Monday': 'Mon',
       'Tuesday': 'Tue',
@@ -68,10 +210,10 @@ export default function MyCourseCard({ course }) {
     <Link href={`/classes/${course._id}`}>
       <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-indigo-200">
         <div className="flex flex-col md:flex-row">
-          {/* Left side - Course Icon & Code */}
+          {/* Left side - Course Icon & Code - Keep purple gradient, change icon */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white flex-shrink-0">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-3">
-              <BookText className="w-8 h-8 text-white" strokeWidth={2} />
+            <div className={`w-16 h-16 ${subjectConfig.iconBg} backdrop-blur-sm rounded-2xl flex items-center justify-center mb-3`}>
+              <SubjectIcon className={`w-8 h-8 ${subjectConfig.iconColor}`} strokeWidth={2} />
             </div>
             <h3 className="text-2xl font-bold text-center mb-1">{course.code}</h3>
             {course.units && (
@@ -166,7 +308,7 @@ export default function MyCourseCard({ course }) {
             {locationDisplay && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="w-5 h-5 text-gray-400" strokeWidth={2} />
+                  <MapPin className="w-5 h-5 text-gray-400" strokeWidth={2} />
                   <span className="truncate">{locationDisplay}</span>
                 </div>
               </div>

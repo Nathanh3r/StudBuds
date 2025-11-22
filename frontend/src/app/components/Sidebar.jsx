@@ -35,7 +35,7 @@ export default function Sidebar() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white font-medium text-lg shadow-lg shadow-indigo-500/20 relative">
             {user?.name?.charAt(0).toUpperCase() || 'U'}
             {/* Level Badge */}
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-purple-200 rounded-full border-2 border-white flex items-center justify-center">
               <span className="text-xs font-bold text-indigo-900">2</span>
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function Sidebar() {
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
           {/* Level Badge */}
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-200 rounded-full border-2 border-white flex items-center justify-center">
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-200 rounded-full border-2 border-white flex items-center justify-center">
             <span className="text-xs font-bold text-indigo-900">2</span>
           </div>
         </div>

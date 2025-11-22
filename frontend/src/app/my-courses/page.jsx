@@ -1,4 +1,3 @@
-// app/my-courses/page.jsx
 'use client';
 
 import { useAuth } from '../context/AuthContext';
@@ -15,37 +14,36 @@ export default function MyCoursesPage() {
   const { user, token, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
   const router = useRouter();
-  
+
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('darkMode') === 'true' : false
+  );
+
   const [myCourses, setMyCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !token) {
-      router.push('/login');
-    }
+    if (!authLoading && !token) router.push('/login');
   }, [authLoading, token, router]);
 
   useEffect(() => {
-    if (token && user) {
-      fetchMyCourses();
-    }
+    if (token && user) fetchMyCourses();
   }, [token, user]);
 
   const fetchMyCourses = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      
       const res = await fetch(`${baseUrl}/classes`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      
-      // Filter to only courses user is enrolled in
-      const enrolledCourses = data.classes.filter(course => 
-        course.isUserMember || user.courses?.includes(course._id)
+
+      const enrolledCourses = data.classes.filter(
+        (course) => course.isUserMember || user.courses?.includes(course._id)
       );
-      
-        setMyCourses(enrolledCourses);
+
+      setMyCourses(enrolledCourses);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -53,14 +51,11 @@ export default function MyCoursesPage() {
     }
   };
 
-  if (authLoading || loading) {
-    return <LoadingScreen />;
-  }
-
+  if (authLoading || loading) return <LoadingScreen />;
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className={`${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen flex`}>
       <Sidebar />
 
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
@@ -73,26 +68,28 @@ export default function MyCoursesPage() {
 
           {/* Courses List */}
           {myCourses.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'} rounded-xl shadow-sm p-12 text-center`}>
               <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No courses yet</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-xl font-semibold mb-2">
+                No courses yet
+              </h3>
+              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
                 Start by discovering and joining courses that interest you
               </p>
               <Link
                 href="/discover"
-                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition"
+                className={`inline-block font-semibold px-6 py-3 rounded-lg transition ${
+                  darkMode ? 'bg-indigo-600 hover:bg-indigo-500 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                }`}
               >
                 Browse Courses
               </Link>
             </div>
           ) : (
             <div className="flex flex-wrap gap-3">
-              {/* For horizontal cards */}
               {myCourses.map((course) => (
-                <MyCourseCard key={course._id} course={course} />
+                <MyCourseCard key={course._id} course={course} darkMode={darkMode} />
               ))}
-
             </div>
           )}
         </div>

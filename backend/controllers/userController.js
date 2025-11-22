@@ -293,3 +293,23 @@ export const getMyStudyGroups = async (req, res) => {
   }
 };
 
+export const updateIconColor = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { iconColor } = req.body;
+
+    if (!iconColor)
+      return res.status(400).json({ message: "iconColor is required" });
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { iconColor } },
+      { new: true }
+    ).select("-password");
+
+    res.json({ user: updatedUser });
+  } catch (err) {
+    console.error("updateIconColor error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

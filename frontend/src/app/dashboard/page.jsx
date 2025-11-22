@@ -2,6 +2,7 @@
 
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -12,6 +13,7 @@ import LoadingScreen from '../components/LoadingScreen';
 export default function DashboardPage() {
   const { user, token, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
   const router = useRouter();
 
   const [myClasses, setMyClasses] = useState([]);
@@ -22,9 +24,7 @@ export default function DashboardPage() {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!authLoading && !token) {
-      router.push('/login');
-    }
+    if (!authLoading && !token) router.push('/login');
   }, [authLoading, token, router]);
 
   // Fetch dashboard data once we have user + token
@@ -87,14 +87,11 @@ export default function DashboardPage() {
 
       // 3) Fetch *real* study groups the user is in
       setGroupsError('');
-      const groupsRes = await fetch(
-        `${baseUrl}/users/me/study-groups`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const groupsRes = await fetch(`${baseUrl}/users/me/study-groups`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const groupsData = await groupsRes.json();
 
@@ -111,25 +108,23 @@ export default function DashboardPage() {
     }
   };
 
-  if (authLoading || loading) {
-    return <LoadingScreen />;
-  }
-
+  if (authLoading || loading) return <LoadingScreen />;
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+    <div
+      className={`min-h-screen flex ${
+        darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-black'
+      }`}
+    >
       <Sidebar />
 
-      {/* Main Content */}
       <div
         className={`flex-1 transition-all duration-300 ${
           isCollapsed ? 'ml-20' : 'ml-64'
         }`}
       >
         <div className="max-w-7xl mx-auto px-8 py-8">
-          {/* Page Header */}
           <PageHeader
             title={`Welcome back, ${user.name}!`}
             subtitle="Here's what's new in your classes today"
@@ -137,14 +132,20 @@ export default function DashboardPage() {
 
           {/* Recent Activity Section */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2
+              className={`text-2xl font-bold mb-4 ${
+                darkMode ? 'text-white' : 'text-gray-900'
+              }`}
+            >
               Recent Activity
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {recentActivity.map((activity) => (
                 <div
                   key={activity.id}
-                  className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition"
+                  className={`rounded-xl shadow-sm p-6 hover:shadow-md transition ${
+                    darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
+                  }`}
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -154,14 +155,28 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3
+                          className={`font-semibold ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
                           {activity.title}
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p
+                        className={`text-sm mb-2 ${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
                         {activity.description}
                       </p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
+                      <p
+                        className={`text-xs ${
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}
+                      >
+                        {activity.time}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -172,7 +187,11 @@ export default function DashboardPage() {
           {/* Your Courses Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2
+                className={`text-2xl font-bold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}
+              >
                 Your Courses
               </h2>
               <Link
@@ -184,8 +203,16 @@ export default function DashboardPage() {
             </div>
 
             {myClasses.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                <p className="text-gray-500 text-lg mb-4">
+              <div
+                className={`rounded-xl shadow-sm p-12 text-center ${
+                  darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
+                }`}
+              >
+                <p
+                  className={`text-lg mb-4 ${
+                    darkMode ? 'text-gray-300' : 'text-gray-500'
+                  }`}
+                >
                   You haven&apos;t joined any classes yet
                 </p>
                 <Link
@@ -201,7 +228,9 @@ export default function DashboardPage() {
                   <Link
                     key={course._id}
                     href={`/classes/${course._id}`}
-                    className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group"
+                    className={`rounded-xl shadow-sm p-6 hover:shadow-md transition group ${
+                      darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
+                    }`}
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -222,12 +251,32 @@ export default function DashboardPage() {
                       </svg>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    <h3
+                      className={`text-lg font-bold mb-1 ${
+                        darkMode ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
                       {course.code}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-3">Fall 2025</p>
-                    <p className="text-gray-700 mb-3 text-sm">{course.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p
+                      className={`text-sm mb-3 ${
+                        darkMode ? 'text-gray-300' : 'text-gray-500'
+                      }`}
+                    >
+                      Fall 2025
+                    </p>
+                    <p
+                      className={`mb-3 text-sm ${
+                        darkMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}
+                    >
+                      {course.name}
+                    </p>
+                    <p
+                      className={`text-xs ${
+                        darkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}
+                    >
                       {course.memberCount} students
                     </p>
                   </Link>
@@ -239,14 +288,22 @@ export default function DashboardPage() {
           {/* Upcoming Study Sessions Section (real study groups) */}
           {(myStudyGroups.length > 0 || groupsError) && (
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2
+                className={`text-2xl font-bold mb-4 ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}
+              >
                 Upcoming Study Sessions
               </h2>
 
               {groupsError ? (
                 <p className="text-red-500 text-sm">{groupsError}</p>
               ) : myStudyGroups.length === 0 ? (
-                <p className="text-gray-500 text-sm">
+                <p
+                  className={`text-sm ${
+                    darkMode ? 'text-gray-300' : 'text-gray-500'
+                  }`}
+                >
                   You haven&apos;t joined any study groups yet.
                 </p>
               ) : (
@@ -258,9 +315,7 @@ export default function DashboardPage() {
 
                     const classLabel = group.class
                       ? `${group.class.code || ''}${
-                          group.class.name
-                            ? ` – ${group.class.name}`
-                            : ''
+                          group.class.name ? ` – ${group.class.name}` : ''
                         }`
                       : '';
 
@@ -273,10 +328,18 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={group._id}
-                        className="bg-white rounded-xl shadow-sm p-6"
+                        className={`rounded-xl shadow-sm p-6 ${
+                          darkMode
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-white text-black'
+                        }`}
                       >
                         <div className="flex items-start justify-between mb-4">
-                          <h3 className="text-lg font-bold text-gray-900">
+                          <h3
+                            className={`text-lg font-bold ${
+                              darkMode ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
                             {group.name}
                           </h3>
                           {classLabel && (
@@ -302,6 +365,7 @@ export default function DashboardPage() {
                             </span>
                           </div>
                         </div>
+
                         <Link
                           href={
                             group.class && group.class._id

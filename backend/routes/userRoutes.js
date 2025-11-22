@@ -10,6 +10,7 @@ import {
   getUserProfile,
   searchUsers,
   getMyStudyGroups,
+  updateIconColor
 } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -44,5 +45,9 @@ router.delete("/remove-friend/:id", protect, removeFriend);
 
 // GET SPECIFIC USER PROFILE
 router.get("/:id", protect, getUserProfile);
+
+// Update Icon color
+router.put("/update/iconColor", protect, updateIconColor);
+
 
 export default router;

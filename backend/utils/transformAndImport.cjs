@@ -334,7 +334,7 @@ async function main() {
   const courses = await processFiles();
 
   // Step 2: Import to database (uncomment when ready)
-  await importToDatabase(courses);
+  // await importToDatabase(courses);
 
   console.log("\n" + "=".repeat(60));
   console.log("✅ Done!");

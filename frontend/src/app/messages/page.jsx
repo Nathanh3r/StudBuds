@@ -1,22 +1,21 @@
+// app/messages/page.jsx
 'use client';
 
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
+import { Send, MessageCircle, Users as UsersIcon, AlertCircle } from 'lucide-react';
 
 export default function MessagesPage() {
   const { user, token, loading: authLoading } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { darkMode } = useDarkMode();
   const router = useRouter();
-
-  // Dark mode state (replace with your theme context if you have one)
-  const [darkMode, setDarkMode] = useState(
-    typeof window !== 'undefined' ? localStorage.getItem('darkMode') === 'true' : false
-  );
 
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -26,10 +25,9 @@ export default function MessagesPage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState('');
   const [backendError, setBackendError] = useState(false);
-  const [newChatUser, setNewChatUser] = useState(null); // For starting new conversations
+  const [newChatUser, setNewChatUser] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !token) {
       router.push('/login');
@@ -66,6 +64,7 @@ export default function MessagesPage() {
   const startNewConversation = async (userId) => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+      
       const res = await fetch(`${baseUrl}/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -73,15 +72,21 @@ export default function MessagesPage() {
       if (res.ok) {
         const data = await res.json();
         const targetUser = data.user;
+        
         const existingConvo = conversations.find(c => c.user._id === userId);
-
-        if (existingConvo) setSelectedConversation(existingConvo);
-        else {
-          const newConvo = { user: targetUser, lastMessage: null, unreadCount: 0 };
+        
+        if (existingConvo) {
+          setSelectedConversation(existingConvo);
+        } else {
+          const newConvo = {
+            user: targetUser,
+            lastMessage: null,
+            unreadCount: 0,
+          };
           setNewChatUser(newConvo);
           setSelectedConversation(newConvo);
         }
-
+        
         window.history.replaceState({}, '', '/messages');
       }
     } catch (err) {
@@ -96,7 +101,7 @@ export default function MessagesPage() {
       const res = await fetch(`${baseUrl}/messages/conversations`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         setBackendError(true);
@@ -110,12 +115,17 @@ export default function MessagesPage() {
         setConversations(data.conversations || []);
         setError('');
         setBackendError(false);
-      } else if (res.status !== 404) {
-        console.error('API Error:', data.message);
-      } else setConversations([]);
+      } else {
+        if (res.status !== 404) {
+          console.error('API Error:', data.message);
+        }
+        setConversations([]);
+      }
     } catch (err) {
       console.error('Error fetching conversations:', err);
-      if (err.message.includes('fetch')) setBackendError(true);
+      if (err.message.includes('fetch')) {
+        setBackendError(true);
+      }
       setConversations([]);
     } finally {
       setLoading(false);
@@ -128,7 +138,7 @@ export default function MessagesPage() {
       const res = await fetch(`${baseUrl}/messages/${userId}?limit=50`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         setError('Unable to load messages. Please try again.');
@@ -178,7 +188,11 @@ export default function MessagesPage() {
 
       if (res.ok) {
         setNewMessage('');
-        if (newChatUser) setNewChatUser(null);
+        
+        if (newChatUser) {
+          setNewChatUser(null);
+        }
+        
         await fetchMessages(selectedConversation.user._id);
         await fetchConversations();
       } else {
@@ -208,24 +222,33 @@ export default function MessagesPage() {
   if (!user) return null;
 
   return (
-    <div className={`${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen flex`}>
-      {/* Sidebar */}
+    <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <Sidebar />
 
-      {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="h-screen flex flex-col">
           {/* Page Header */}
-          <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 sm:px-6 lg:px-8 py-6`}>
-            <PageHeader title="Messages" subtitle="Chat with your classmates" />
+          <div className={`px-8 pt-8 border-b-2 ${
+            darkMode ? 'border-gray-800' : 'border-gray-50'
+          }`}>
+            <PageHeader
+              title="Messages"
+              subtitle="Chat with your classmates"
+            />
           </div>
 
           {/* Backend Error Warning */}
           {backendError && (
-            <div className={`${darkMode ? 'bg-yellow-900 text-yellow-200 border-yellow-800' : 'bg-yellow-50 text-yellow-800 border-yellow-200'} border-b px-4 sm:px-6 lg:px-8 py-3`}>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚠️</span>
-                <p className="text-sm">
+            <div className={`border-b-2 px-8 py-4 ${
+              darkMode 
+                ? 'bg-yellow-900/50 border-yellow-800' 
+                : 'bg-yellow-50 border-yellow-100'
+            }`}>
+              <div className={`flex items-center gap-3 ${
+                darkMode ? 'text-yellow-300' : 'text-yellow-800'
+              }`}>
+                <AlertCircle className="w-5 h-5" strokeWidth={2} />
+                <p className="text-sm font-medium">
                   Unable to connect to messaging service. Please make sure the backend is running on port 4000.
                 </p>
               </div>
@@ -235,71 +258,91 @@ export default function MessagesPage() {
           {/* Messages Layout */}
           <div className="flex-1 flex overflow-hidden">
             {/* Conversations List */}
-            <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-full sm:w-80 lg:w-96 flex flex-col overflow-hidden`}>
-              <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                <h2 className="text-lg font-semibold">{darkMode ? 'text-gray-100' : 'text-gray-900'}Conversations</h2>
+            <div className={`w-full sm:w-80 lg:w-96 border-r-2 flex flex-col overflow-hidden ${
+              darkMode ? 'border-gray-800 bg-gray-800' : 'border-gray-50 bg-white'
+            }`}>
+              <div className={`p-6 border-b-2 ${
+                darkMode ? 'border-gray-700' : 'border-gray-50'
+              }`}>
+                <h2 className={`text-xl font-semibold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}>Conversations</h2>
               </div>
 
               <div className="flex-1 overflow-y-auto">
                 {conversations.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <div className="text-6xl mb-4">💬</div>
-                    <h3 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} text-lg font-semibold mb-2`}>No messages yet</h3>
-                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm mb-4`}>
+                  <div className="p-12 text-center">
+                    <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
+                      darkMode ? 'text-gray-600' : 'text-gray-300'
+                    }`} strokeWidth={1.5} />
+                    <h3 className={`text-lg font-semibold mb-2 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>No messages yet</h3>
+                    <p className={`text-sm mb-6 max-w-xs mx-auto ${
+                      darkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       Start a conversation with your friends!
                     </p>
                     <button
                       onClick={() => router.push('/friends')}
-                      className={`inline-block font-medium px-4 py-2 rounded-lg transition text-sm ${
-                        darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                      }`}
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-6 py-3 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
                     >
                       Go to Friends
                     </button>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200">
+                  <div>
                     {conversations.map((conversation) => (
                       <button
                         key={conversation.user._id}
                         onClick={() => setSelectedConversation(conversation)}
-                        className={`w-full p-4 text-left transition ${
+                        className={`w-full p-5 transition text-left border-b ${
+                          darkMode ? 'border-gray-700' : 'border-gray-50'
+                        } ${
                           selectedConversation?.user._id === conversation.user._id
                             ? darkMode
-                              ? 'bg-gray-700 border-l-4 border-indigo-400'
-                              : 'bg-indigo-50 border-l-4 border-indigo-600'
+                              ? 'bg-gray-700'
+                              : 'bg-indigo-50'
                             : darkMode
                             ? 'hover:bg-gray-700'
                             : 'hover:bg-gray-50'
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
                             <span className="text-white font-semibold text-lg">
                               {conversation.user.name.charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <h3 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} font-semibold truncate`}>
+                              <h3 className={`font-semibold truncate ${
+                                darkMode ? 'text-white' : 'text-gray-900'
+                              }`}>
                                 {conversation.user.name}
                               </h3>
                               {conversation.lastMessage && (
-                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs ml-2 flex-shrink-0`}>
+                                <span className={`text-xs ml-2 flex-shrink-0 font-medium ${
+                                  darkMode ? 'text-gray-500' : 'text-gray-400'
+                                }`}>
                                   {formatTime(conversation.lastMessage.createdAt)}
                                 </span>
                               )}
                             </div>
-                            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} text-xs mb-1 truncate`}>
+                            <p className={`text-xs mb-2 truncate ${
+                              darkMode ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
                               {conversation.user.major}
                             </p>
                             {conversation.lastMessage && (
-                              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm truncate`}>
+                              <p className={`text-sm truncate ${
+                                darkMode ? 'text-gray-300' : 'text-gray-600'
+                              }`}>
                                 {conversation.lastMessage.content}
                               </p>
                             )}
                             {conversation.unreadCount > 0 && (
-                              <span className="inline-block mt-2 bg-indigo-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                              <span className="inline-block mt-2 bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                 {conversation.unreadCount} new
                               </span>
                             )}
@@ -313,22 +356,30 @@ export default function MessagesPage() {
             </div>
 
             {/* Chat Area */}
-            <div className={`${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex-1 flex flex-col`}>
+            <div className={`flex-1 flex flex-col ${
+              darkMode ? 'bg-gray-900' : 'bg-white'
+            }`}>
               {selectedConversation ? (
                 <>
                   {/* Chat Header */}
-                  <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4`}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold">
+                  <div className={`border-b-2 px-8 py-6 ${
+                    darkMode ? 'border-gray-800' : 'border-gray-50'
+                  }`}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                        <span className="text-white font-semibold text-lg">
                           {selectedConversation.user.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} font-semibold`}>
+                        <h3 className={`font-semibold text-lg ${
+                          darkMode ? 'text-white' : 'text-gray-900'
+                        }`}>
                           {selectedConversation.user.name}
                         </h3>
-                        <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+                        <p className={`text-sm ${
+                          darkMode ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
                           {selectedConversation.user.major}
                         </p>
                       </div>
@@ -336,15 +387,20 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div className="flex-1 overflow-y-auto p-8 space-y-4">
                     {messages.length === 0 ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center">
-                          <div className="text-4xl mb-2">👋</div>
-                          <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>
-                            {newChatUser
+                          <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
+                            darkMode ? 'text-gray-600' : 'text-gray-300'
+                          }`} strokeWidth={1.5} />
+                          <p className={`text-lg ${
+                            darkMode ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            {newChatUser 
                               ? `Start a conversation with ${selectedConversation.user.name}!`
-                              : "No messages yet. Say hi to start the conversation!"}
+                              : "Say hi to start the conversation!"
+                            }
                           </p>
                         </div>
                       </div>
@@ -358,24 +414,22 @@ export default function MessagesPage() {
                               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                             >
                               <div
-                                className={`max-w-xs lg:max-w-md xl:max-w-lg rounded-2xl px-4 py-2 shadow-sm ${
+                                className={`max-w-xs lg:max-w-md xl:max-w-lg rounded-3xl px-5 py-3 ${
                                   isCurrentUser
-                                    ? darkMode
-                                      ? 'bg-indigo-600 text-white'
-                                      : 'bg-indigo-600 text-white'
+                                    ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
                                     : darkMode
-                                    ? 'bg-gray-800 text-gray-100'
-                                    : 'bg-white text-gray-900'
+                                    ? 'bg-gray-800 text-white'
+                                    : 'bg-gray-50 text-gray-900'
                                 }`}
                               >
-                                <p className="text-sm break-words">{message.content}</p>
+                                <p className="text-sm break-words leading-relaxed">{message.content}</p>
                                 <p
-                                  className={`text-xs mt-1 ${
-                                    isCurrentUser
-                                      ? 'text-indigo-200'
+                                  className={`text-xs mt-2 font-medium ${
+                                    isCurrentUser 
+                                      ? 'text-indigo-100' 
                                       : darkMode
-                                      ? 'text-gray-400'
-                                      : 'text-gray-500'
+                                      ? 'text-gray-500'
+                                      : 'text-gray-400'
                                   }`}
                                 >
                                   {formatTime(message.createdAt)}
@@ -390,29 +444,28 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Message Input */}
-                  <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t p-4`}>
+                  <div className={`border-t-2 p-6 ${
+                    darkMode ? 'border-gray-800' : 'border-gray-50'
+                  }`}>
                     <form onSubmit={handleSendMessage} className="flex gap-3">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        disabled={sendingMessage}
-                        className={`flex-1 px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent ${
+                        className={`flex-1 px-5 py-4 border-2 rounded-2xl focus:outline-none transition ${
                           darkMode
-                            ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-indigo-500'
-                            : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-600'
+                            ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500'
+                            : 'bg-white border-gray-100 text-gray-900 placeholder-gray-400 focus:border-indigo-300'
                         }`}
+                        disabled={sendingMessage}
                       />
                       <button
                         type="submit"
                         disabled={sendingMessage || !newMessage.trim()}
-                        className={`font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
-                          darkMode
-                            ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                        }`}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-2xl transition disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-indigo-500/30 flex items-center gap-2"
                       >
+                        <Send className="w-5 h-5" strokeWidth={2} />
                         {sendingMessage ? 'Sending...' : 'Send'}
                       </button>
                     </form>
@@ -421,11 +474,17 @@ export default function MessagesPage() {
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">💬</div>
-                    <h3 className={`${darkMode ? 'text-gray-100' : 'text-gray-900'} text-xl font-semibold mb-2`}>
+                    <MessageCircle className={`w-20 h-20 mx-auto mb-6 ${
+                      darkMode ? 'text-gray-600' : 'text-gray-300'
+                    }`} strokeWidth={1.5} />
+                    <h3 className={`text-2xl font-semibold mb-3 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
                       Select a conversation
                     </h3>
-                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p className={`text-lg ${
+                      darkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       Choose a conversation from the list to start messaging
                     </p>
                   </div>
@@ -436,14 +495,25 @@ export default function MessagesPage() {
 
           {/* Error Message */}
           {error && (
-            <div className={`${darkMode ? 'bg-red-900 border-red-700 text-red-200' : 'bg-red-50 border-red-200 text-red-700'} fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg max-w-md z-50 flex items-center justify-between`}>
-              {error}
-              <button
-                onClick={() => setError('')}
-                className={`${darkMode ? 'text-red-200 hover:text-red-100' : 'text-red-900 hover:text-red-700'} ml-4`}
-              >
-                ✕
-              </button>
+            <div className={`fixed bottom-8 right-8 border-2 px-6 py-4 rounded-2xl shadow-xl max-w-md z-50 ${
+              darkMode
+                ? 'bg-red-900/90 border-red-700 text-red-200'
+                : 'bg-red-50 border-red-200 text-red-700'
+            }`}>
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5" strokeWidth={2} />
+                <span className="font-medium">{error}</span>
+                <button
+                  onClick={() => setError('')}
+                  className={`ml-2 font-bold ${
+                    darkMode
+                      ? 'text-red-200 hover:text-red-100'
+                      : 'text-red-900 hover:text-red-700'
+                  }`}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
         </div>

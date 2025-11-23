@@ -1,31 +1,10 @@
 // components/MyCourseCard.jsx
 'use client';
-import { 
-  Calendar, 
-  User, 
-  Clock, 
-  MapPin, 
-  ChevronRight, 
-  BookOpen,
-  BookText,
-  Dna,           
-  FlaskConical,   
-  Code,          
-  Calculator,    
-  Brain,         
-  Zap,           
-  TrendingUp,    
-  Globe,         
-  Landmark,      
-  Languages,     
-  Palette,       
-  Music,         
-  Scale,         
-  Building2,     
-  Pencil,        
-  Activity,      
-} from 'lucide-react';
+
+import { Calendar, User, Clock, MapPin } from 'lucide-react';
 import Link from 'next/link';
+import { getSubjectConfig } from '../lib/constants';
+import { getPrimaryMeeting, formatInstructor } from '../lib/courseUtils';
 
 export default function MyCourseCard({ course }) {
   // Safety check
@@ -33,184 +12,21 @@ export default function MyCourseCard({ course }) {
     return null;
   }
 
-  // Get subject-specific icon and colors
-  const getSubjectConfig = (department) => {
-    const dept = department?.toUpperCase() || '';
-    
-    const configs = {
-      'BIOL': { 
-        icon: Dna, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'CHEM': { 
-        icon: FlaskConical, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'CS': { 
-        icon: Code, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'CSE': { 
-        icon: Code, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'MATH': { 
-        icon: Calculator, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'PSYC': { 
-        icon: Brain, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'PHYS': { 
-        icon: Zap, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'ECON': { 
-        icon: TrendingUp, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'GEOG': { 
-        icon: Globe, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'HIST': { 
-        icon: Landmark, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'ENGL': { 
-        icon: Pencil, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'SPAN': { 
-        icon: Languages, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'FREN': { 
-        icon: Languages, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'ART': { 
-        icon: Palette, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'MUS': { 
-        icon: Music, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'LAW': { 
-        icon: Scale, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'ENGR': { 
-        icon: Building2, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'PE': { 
-        icon: Activity, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-      'BCOE': { 
-        icon: Building2, 
-        iconColor: 'text-white',
-        iconBg: 'bg-white/20',
-      },
-    };
-
-    for (const [key, config] of Object.entries(configs)) {
-      if (dept.startsWith(key)) {
-        return config;
-      }
-    }
-
-    return {
-      icon: BookText,
-      iconColor: 'text-white',
-      iconBg: 'bg-white/20',
-    };
-  };
-
-  const subjectConfig = getSubjectConfig(course.department);
+  // Get subject configuration (white icons for gradient background)
+  const subjectConfig = getSubjectConfig(course.department, true);
   const SubjectIcon = subjectConfig.icon;
 
-  // Helper function to abbreviate day names
-  const abbreviateDay = (day) => {
-    const dayMap = {
-      'Monday': 'Mon',
-      'Tuesday': 'Tue',
-      'Wednesday': 'Wed',
-      'Thursday': 'Thu',
-      'Friday': 'Fri',
-      'Saturday': 'Sat',
-      'Sunday': 'Sun'
-    };
-    return dayMap[day] || day;
-  };
+  // Format meeting info
+  const { meeting: meetingDisplay, location: locationDisplay } = getPrimaryMeeting(course);
 
-  // Get first meeting time for display
-  const primaryMeeting = course.meetingTimes?.[0];
-
-  // Format meeting display properly
-  let meetingDisplay = null;
-  if (primaryMeeting) {
-    // Abbreviate and join days with no space (M, W, F -> MWF)
-    const days = primaryMeeting.days?.length > 0 
-      ? primaryMeeting.days.map(day => abbreviateDay(day)).join(' & ') 
-      : '';
-    
-    const times = (primaryMeeting.startTime && primaryMeeting.endTime) 
-      ? `${primaryMeeting.startTime} - ${primaryMeeting.endTime}` 
-      : '';
-    
-    // Combine days and times with space
-    if (days && times) {
-      meetingDisplay = `${days} ${times}`;
-    } else if (days) {
-      meetingDisplay = days;
-    } else if (times) {
-      meetingDisplay = times;
-    }
-  }
-
-  // Format location properly
-  let locationDisplay = null;
-  if (primaryMeeting) {
-    // Check if it's online
-    const isOnline = primaryMeeting.building?.toLowerCase() === 'online' || 
-                     primaryMeeting.location?.toLowerCase().includes('online');
-    
-    if (isOnline) {
-      locationDisplay = 'Online';
-    } else if (primaryMeeting.building && primaryMeeting.room) {
-      locationDisplay = `${primaryMeeting.building} ${primaryMeeting.room}`;
-    } else if (primaryMeeting.location) {
-      locationDisplay = primaryMeeting.location;
-    }
-  }
+  // Format instructor
+  const instructorName = formatInstructor(course.instructor);
 
   return (
     <Link href={`/classes/${course._id}`}>
       <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-indigo-200">
         <div className="flex flex-col md:flex-row">
-          {/* Left side - Course Icon & Code - Keep purple gradient, change icon */}
+          {/* Left side - Course Icon & Code */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white flex-shrink-0">
             <div className={`w-16 h-16 ${subjectConfig.iconBg} backdrop-blur-sm rounded-2xl flex items-center justify-center mb-3`}>
               <SubjectIcon className={`w-8 h-8 ${subjectConfig.iconColor}`} strokeWidth={2} />
@@ -276,14 +92,14 @@ export default function MyCourseCard({ course }) {
               )}
 
               {/* Instructor */}
-              {course.instructor?.name && (
+              {instructorName && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
                   <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
                     <User className="w-5 h-5 text-purple-600" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs text-gray-500">Instructor</p>
-                    <p className="font-medium text-gray-900 truncate">{course.instructor.name}</p>
+                    <p className="font-medium text-gray-900 truncate">{instructorName}</p>
                   </div>
                 </div>
               )}

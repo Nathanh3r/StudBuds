@@ -1,15 +1,22 @@
-// app/friends/page.jsx
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search, UserPlus, Users, MessageCircle, User, AlertCircle, Check } from 'lucide-react';
+
+// Context & Hooks
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
 import { useDarkMode } from '../context/DarkModeContext';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useFriends } from '../hooks/useFriends';
+
+// Components
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
-import { Search, UserPlus, Users, MessageCircle, User, AlertCircle, Check } from 'lucide-react';
+
+// API
+import { searchUsers, addFriend, removeFriend } from '../lib/friends';
 
 export default function FriendsPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -17,38 +24,15 @@ export default function FriendsPage() {
   const { darkMode } = useDarkMode();
   const router = useRouter();
   
-  const [friends, setFriends] = useState([]);
+  // Friends data
+  const { friends, loading, refetch } = useFriends(token);
+  
+  // Search state
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('friends');
-  const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!authLoading && !token) router.push('/login');
-  }, [authLoading, token, router]);
-
-  useEffect(() => {
-    if (token && user) fetchFriends();
-  }, [token, user]);
-
-  const fetchFriends = async () => {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/friends`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok) setFriends(data.friends || []);
-      else setError(data.message || 'Failed to load friends');
-    } catch (err) {
-      console.error('Error fetching friends:', err);
-      setError('Failed to load friends');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -58,19 +42,12 @@ export default function FriendsPage() {
     setError('');
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/search?q=${encodeURIComponent(searchQuery)}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setSearchResults(data.users || []);
-        setActiveTab('search');
-      } else setError(data.message || 'Search failed');
+      const data = await searchUsers(searchQuery, token);
+      setSearchResults(data.users || []);
+      setActiveTab('search');
     } catch (err) {
       console.error('Error searching users:', err);
-      setError('Search failed');
+      setError(err.message || 'Search failed');
     } finally {
       setSearchLoading(false);
     }
@@ -78,21 +55,12 @@ export default function FriendsPage() {
 
   const handleAddFriend = async (userId) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/add-friend/${userId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (res.ok) {
-        await fetchFriends();
-        setSearchResults(searchResults.filter(u => u._id !== userId));
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Failed to add friend');
-      }
+      await addFriend(userId, token);
+      await refetch();
+      setSearchResults(searchResults.filter(u => u._id !== userId));
     } catch (err) {
       console.error('Error adding friend:', err);
-      setError('Failed to add friend');
+      setError(err.message || 'Failed to add friend');
     }
   };
 
@@ -100,36 +68,33 @@ export default function FriendsPage() {
     if (!confirm('Are you sure you want to remove this friend?')) return;
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/remove-friend/${userId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (res.ok) await fetchFriends();
-      else {
-        const data = await res.json();
-        setError(data.message || 'Failed to remove friend');
-      }
+      await removeFriend(userId, token);
+      await refetch();
     } catch (err) {
       console.error('Error removing friend:', err);
-      setError('Failed to remove friend');
+      setError(err.message || 'Failed to remove friend');
     }
   };
 
-  const handleSendMessage = async (userId) => {
+  const handleSendMessage = (userId) => {
     router.push(`/messages?userId=${userId}`);
   };
 
+  // Show loading screen while auth or data is loading
   if (authLoading || loading) {
     return <LoadingScreen />;
   }
 
-  if (!user) return null;
+  // Redirect if not authenticated
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <Sidebar />
-
+      
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="max-w-7xl mx-auto px-8 pt-8 pb-16">
           {/* Page Header */}
@@ -242,72 +207,14 @@ export default function FriendsPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {friends.map((friend) => (
-                    <div
+                    <FriendCard
                       key={friend._id}
-                      className={`border-2 rounded-3xl p-6 transition-all duration-300 ${
-                        darkMode 
-                          ? 'bg-gray-800 border-gray-700 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10' 
-                          : 'bg-white border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10'
-                      }`}
-                    >
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
-                          <span className="text-white font-semibold text-2xl">
-                            {friend.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className={`font-semibold text-lg mb-1 truncate ${
-                            darkMode ? 'text-white' : 'text-gray-900'
-                          }`}>
-                            {friend.name}
-                          </h3>
-                          <p className="text-sm text-indigo-600 mb-1 truncate font-medium">{friend.major}</p>
-                          <p className={`text-xs truncate ${
-                            darkMode ? 'text-gray-500' : 'text-gray-400'
-                          }`}>{friend.email}</p>
-                        </div>
-                      </div>
-                      
-                      {friend.bio && (
-                        <p className={`text-sm mb-6 line-clamp-2 leading-relaxed ${
-                          darkMode ? 'text-gray-300' : 'text-gray-600'
-                        }`}>{friend.bio}</p>
-                      )}
-
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => handleSendMessage(friend._id)}
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-4 py-3 rounded-xl transition hover:shadow-lg hover:shadow-indigo-500/30 text-sm flex items-center justify-center gap-2"
-                          >
-                            <MessageCircle className="w-4 h-4" strokeWidth={2} />
-                            Message
-                          </button>
-                          <button
-                            onClick={() => router.push(`/profile/${friend._id}`)}
-                            className={`font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 ${
-                              darkMode 
-                                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
-                            }`}
-                          >
-                            <User className="w-4 h-4" strokeWidth={2} />
-                            Profile
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveFriend(friend._id)}
-                          className={`w-full font-medium px-4 py-3 rounded-xl transition text-sm ${
-                            darkMode 
-                              ? 'bg-gray-700 hover:bg-red-900 text-gray-300 hover:text-red-200' 
-                              : 'bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-600'
-                          }`}
-                        >
-                          Remove Friend
-                        </button>
-                      </div>
-                    </div>
+                      friend={friend}
+                      darkMode={darkMode}
+                      onSendMessage={() => handleSendMessage(friend._id)}
+                      onViewProfile={() => router.push(`/profile/${friend._id}`)}
+                      onRemove={() => handleRemoveFriend(friend._id)}
+                    />
                   ))}
                 </div>
               )}
@@ -338,74 +245,14 @@ export default function FriendsPage() {
                   {searchResults.map(searchUser => {
                     const isFriend = friends.some(f => f._id === searchUser._id);
                     return (
-                      <div
+                      <SearchUserCard
                         key={searchUser._id}
-                        className={`border-2 rounded-3xl p-6 transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gray-800 border-gray-700 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10' 
-                            : 'bg-white border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10'
-                        }`}
-                      >
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
-                            <span className="text-white font-semibold text-2xl">
-                              {searchUser.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className={`font-semibold text-lg mb-1 truncate ${
-                              darkMode ? 'text-white' : 'text-gray-900'
-                            }`}>
-                              {searchUser.name}
-                            </h3>
-                            <p className="text-sm text-indigo-600 mb-1 truncate font-medium">{searchUser.major}</p>
-                            <p className={`text-xs truncate ${
-                              darkMode ? 'text-gray-500' : 'text-gray-400'
-                            }`}>{searchUser.email}</p>
-                          </div>
-                        </div>
-                        
-                        {searchUser.bio && (
-                          <p className={`text-sm mb-6 line-clamp-2 leading-relaxed ${
-                            darkMode ? 'text-gray-300' : 'text-gray-600'
-                          }`}>{searchUser.bio}</p>
-                        )}
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => router.push(`/profile/${searchUser._id}`)}
-                            className={`flex-1 font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 ${
-                              darkMode 
-                                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                                : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            <User className="w-4 h-4" strokeWidth={2} />
-                            View Profile
-                          </button>
-                          {isFriend ? (
-                            <button
-                              disabled
-                              className={`font-medium px-5 py-3 rounded-xl text-sm cursor-not-allowed flex items-center gap-2 ${
-                                darkMode 
-                                  ? 'bg-green-900/50 text-green-300' 
-                                  : 'bg-green-50 text-green-700'
-                              }`}
-                            >
-                              <Check className="w-4 h-4" strokeWidth={2} />
-                              Friends
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleAddFriend(searchUser._id)}
-                              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-5 py-3 rounded-xl transition hover:shadow-lg hover:shadow-indigo-500/30 text-sm flex items-center gap-2"
-                            >
-                              <UserPlus className="w-4 h-4" strokeWidth={2} />
-                              Add
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                        user={searchUser}
+                        isFriend={isFriend}
+                        darkMode={darkMode}
+                        onViewProfile={() => router.push(`/profile/${searchUser._id}`)}
+                        onAddFriend={() => handleAddFriend(searchUser._id)}
+                      />
                     );
                   })}
                 </div>
@@ -413,6 +260,150 @@ export default function FriendsPage() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Friend Card Component
+function FriendCard({ friend, darkMode, onSendMessage, onViewProfile, onRemove }) {
+  return (
+    <div
+      className={`border-2 rounded-3xl p-6 transition-all duration-300 ${
+        darkMode 
+          ? 'bg-gray-800 border-gray-700 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10' 
+          : 'bg-white border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10'
+      }`}
+    >
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+          <span className="text-white font-semibold text-2xl">
+            {friend.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-semibold text-lg mb-1 truncate ${
+            darkMode ? 'text-white' : 'text-gray-900'
+          }`}>
+            {friend.name}
+          </h3>
+          <p className="text-sm text-indigo-600 mb-1 truncate font-medium">{friend.major}</p>
+          <p className={`text-xs truncate ${
+            darkMode ? 'text-gray-500' : 'text-gray-400'
+          }`}>{friend.email}</p>
+        </div>
+      </div>
+      
+      {friend.bio && (
+        <p className={`text-sm mb-6 line-clamp-2 leading-relaxed ${
+          darkMode ? 'text-gray-300' : 'text-gray-600'
+        }`}>{friend.bio}</p>
+      )}
+
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={onSendMessage}
+            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-4 py-3 rounded-xl transition hover:shadow-lg hover:shadow-indigo-500/30 text-sm flex items-center justify-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4" strokeWidth={2} />
+            Message
+          </button>
+          <button
+            onClick={onViewProfile}
+            className={`font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 ${
+              darkMode 
+                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+            }`}
+          >
+            <User className="w-4 h-4" strokeWidth={2} />
+            Profile
+          </button>
+        </div>
+        <button
+          onClick={onRemove}
+          className={`w-full font-medium px-4 py-3 rounded-xl transition text-sm ${
+            darkMode 
+              ? 'bg-gray-700 hover:bg-red-900 text-gray-300 hover:text-red-200' 
+              : 'bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-600'
+          }`}
+        >
+          Remove Friend
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Search User Card Component
+function SearchUserCard({ user, isFriend, darkMode, onViewProfile, onAddFriend }) {
+  return (
+    <div
+      className={`border-2 rounded-3xl p-6 transition-all duration-300 ${
+        darkMode 
+          ? 'bg-gray-800 border-gray-700 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10' 
+          : 'bg-white border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10'
+      }`}
+    >
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+          <span className="text-white font-semibold text-2xl">
+            {user.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-semibold text-lg mb-1 truncate ${
+            darkMode ? 'text-white' : 'text-gray-900'
+          }`}>
+            {user.name}
+          </h3>
+          <p className="text-sm text-indigo-600 mb-1 truncate font-medium">{user.major}</p>
+          <p className={`text-xs truncate ${
+            darkMode ? 'text-gray-500' : 'text-gray-400'
+          }`}>{user.email}</p>
+        </div>
+      </div>
+      
+      {user.bio && (
+        <p className={`text-sm mb-6 line-clamp-2 leading-relaxed ${
+          darkMode ? 'text-gray-300' : 'text-gray-600'
+        }`}>{user.bio}</p>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          onClick={onViewProfile}
+          className={`flex-1 font-medium px-4 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 ${
+            darkMode 
+              ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+              : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+          }`}
+        >
+          <User className="w-4 h-4" strokeWidth={2} />
+          View Profile
+        </button>
+        {isFriend ? (
+          <button
+            disabled
+            className={`font-medium px-5 py-3 rounded-xl text-sm cursor-not-allowed flex items-center gap-2 ${
+              darkMode 
+                ? 'bg-green-900/50 text-green-300' 
+                : 'bg-green-50 text-green-700'
+            }`}
+          >
+            <Check className="w-4 h-4" strokeWidth={2} />
+            Friends
+          </button>
+        ) : (
+          <button
+            onClick={onAddFriend}
+            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-5 py-3 rounded-xl transition hover:shadow-lg hover:shadow-indigo-500/30 text-sm flex items-center gap-2"
+          >
+            <UserPlus className="w-4 h-4" strokeWidth={2} />
+            Add
+          </button>
+        )}
       </div>
     </div>
   );

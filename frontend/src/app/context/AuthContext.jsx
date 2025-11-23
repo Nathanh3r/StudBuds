@@ -1,7 +1,9 @@
+// context/AuthContext.jsx
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiRequest } from '../lib/client';
 
 const AuthContext = createContext();
 
@@ -11,6 +13,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Load user and token from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -22,20 +25,18 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
+  /**
+   * Login user
+   * @param {string} email - User email
+   * @param {string} password - User password
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
   const login = async (email, password) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/login`, {
+      const data = await apiRequest('/users/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -51,20 +52,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  /**
+   * Sign up new user
+   * @param {string} name - User name
+   * @param {string} email - User email
+   * @param {string} password - User password
+   * @param {string} major - User major
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
   const signup = async (name, email, password, major) => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/register`, {
+      const data = await apiRequest('/users/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, major }),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Signup failed');
-      }
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -80,6 +81,9 @@ export function AuthProvider({ children }) {
     }
   };
 
+  /**
+   * Logout user
+   */
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -90,8 +94,25 @@ export function AuthProvider({ children }) {
     router.push('/login');
   };
 
+  /**
+   * Update user data in context and localStorage
+   * @param {object} updatedUser - Updated user object
+   */
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      signup, 
+      logout, 
+      loading,
+      updateUser 
+    }}>
       {children}
     </AuthContext.Provider>
   );

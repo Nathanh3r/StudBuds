@@ -1,16 +1,20 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { BookOpen, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+
+// Context & Hooks
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
 import { useDarkMode } from '../context/DarkModeContext';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useClasses } from '../hooks/useClasses';
+
+// Components
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
 import MyCourseCard from '../components/MyCourseCard';
-import { BookOpen, ChevronRight } from 'lucide-react';
 
 export default function MyCoursesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -18,44 +22,24 @@ export default function MyCoursesPage() {
   const { darkMode } = useDarkMode();
   const router = useRouter();
 
-  const [myCourses, setMyCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Fetch enrolled courses only
+  const { classes: myCourses, loading } = useClasses(token, 'enrolled', user);
 
-  useEffect(() => {
-    if (!authLoading && !token) router.push('/login');
-  }, [authLoading, token, router]);
+  // Show loading screen while auth or data is loading
+  if (authLoading || loading) {
+    return <LoadingScreen />;
+  }
 
-  useEffect(() => {
-    if (token && user) fetchMyCourses();
-  }, [token, user]);
-
-  const fetchMyCourses = async () => {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/classes`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-
-      const enrolledCourses = data.classes.filter(
-        (course) => course.isUserMember || user.courses?.includes(course._id)
-      );
-
-      setMyCourses(enrolledCourses);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (authLoading || loading) return <LoadingScreen />;
-  if (!user) return null;
+  // Redirect if not authenticated
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <Sidebar />
-
+      
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="max-w-7xl mx-auto px-8 pt-8 pb-16">
           {/* Page Header */}

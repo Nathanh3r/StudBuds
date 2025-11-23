@@ -1,79 +1,53 @@
+// app/users/[id]/page.jsx
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
-import { useSidebar } from '../../context/SidebarContext';
+import { useDarkMode } from '../../context/DarkModeContext';
 import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Sidebar from '../../components/Sidebar';
+import { useState } from 'react';
+import ProtectedPage from '../../components/ProtectedPage';
+import PageHeader from '../../components/PageHeader';
+import EditProfileModal from '../../components/EditProfileModal';
 import LoadingScreen from '../../components/LoadingScreen';
+import EmptyState from '../../components/EmptyState';
+import StatsCard from '../../components/StatsCard';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { addFriend, removeFriend, updateUserProfile } from '../../lib/api/users';
+import { 
+  Mail, 
+  MessageCircle, 
+  UserPlus, 
+  UserMinus, 
+  Users, 
+  BookOpen, 
+  Award,
+  Settings,
+  Briefcase,
+  User
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function UserProfilePage() {
-  const { token, user: currentUser, loading: authLoading } = useAuth();
-  const { isCollapsed } = useSidebar();
+  const { token, user: currentUser } = useAuth();
+  const { darkMode } = useDarkMode();
   const router = useRouter();
   const params = useParams();
   const userId = params.id;
 
-  const [profileUser, setProfileUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { user: profileUser, loading, error, refetch } = useUserProfile(userId, token);
   const [actionLoading, setActionLoading] = useState(false);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !token) {
-      router.push('/login');
-    }
-  }, [authLoading, token, router]);
-
-  // Fetch user profile
-  useEffect(() => {
-    if (token && userId) {
-      fetchUserProfile();
-    }
-  }, [token, userId]);
-
-  const fetchUserProfile = async () => {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/${userId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        setProfileUser(data.user);
-      } else {
-        setError(data.message || 'Failed to load profile');
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError('Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const handleAddFriend = async () => {
     setActionLoading(true);
+    setActionError('');
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/add-friend/${userId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      
-      if (res.ok) {
-        // Refresh profile to update isFriend status
-        await fetchUserProfile();
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Failed to add friend');
-      }
+      await addFriend(userId, token);
+      await refetch();
     } catch (err) {
       console.error('Error adding friend:', err);
-      setError('Failed to add friend');
+      setActionError(err.message);
     } finally {
       setActionLoading(false);
     }
@@ -83,45 +57,37 @@ export default function UserProfilePage() {
     if (!confirm('Are you sure you want to remove this friend?')) return;
 
     setActionLoading(true);
+    setActionError('');
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${baseUrl}/users/remove-friend/${userId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      
-      if (res.ok) {
-        // Refresh profile to update isFriend status
-        await fetchUserProfile();
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Failed to remove friend');
-      }
+      await removeFriend(userId, token);
+      await refetch();
     } catch (err) {
       console.error('Error removing friend:', err);
-      setError('Failed to remove friend');
+      setActionError(err.message);
     } finally {
       setActionLoading(false);
     }
   };
 
-  if (authLoading || loading) {
-    return <LoadingScreen />;
-  }
+  const handleSaveProfile = async (formData) => {
+    await updateUserProfile(formData, token);
+    await refetch();
+  };
+
+  if (loading) return <LoadingScreen />;
 
   if (error && !profileUser) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
-        <Sidebar />
-        <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center max-w-md">
-              <div className="text-xl text-red-600 mb-4">Error Loading Profile</div>
-              <div className="text-gray-600 mb-4">{error}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProtectedPage>
+        <EmptyState
+          icon={User}
+          title="Profile Not Found"
+          description={error}
+          actionLabel="Browse Friends"
+          actionHref="/friends"
+          darkMode={darkMode}
+        />
+      </ProtectedPage>
     );
   }
 
@@ -129,140 +95,170 @@ export default function UserProfilePage() {
 
   const isOwnProfile = currentUser._id === profileUser._id;
 
+  const stats = [
+    {
+      label: 'Friends',
+      value: profileUser.friendCount || 0,
+      icon: Users,
+      bgColor: 'bg-blue-50',
+      iconColor: 'text-blue-600',
+    },
+    {
+      label: 'Classes',
+      value: profileUser.classCount || 0,
+      icon: BookOpen,
+      bgColor: 'bg-green-50',
+      iconColor: 'text-green-600',
+    },
+    {
+      label: 'Level',
+      value: '2',
+      icon: Award,
+      bgColor: 'bg-amber-50',
+      iconColor: 'text-amber-600',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar />
+    <ProtectedPage maxWidth="5xl">
+      <PageHeader
+        title={isOwnProfile ? "Your Profile" : profileUser.name}
+        subtitle={isOwnProfile ? "Manage your profile and view your stats" : `View ${profileUser.name.split(' ')[0]}'s profile`}
+      />
 
-      {/* Main Content */}
-      <div
-        className={`flex-1 transition-all duration-300 ${
-          isCollapsed ? 'ml-20' : 'ml-64'
-        }`}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-          {/* Profile Header */}
-          <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              {/* Avatar */}
-              <div className="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-semibold text-4xl">
-                  {profileUser.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-
-              {/* User Info */}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{profileUser.name}</h1>
-                <p className="text-lg text-indigo-600 mb-2">{profileUser.major}</p>
-                <p className="text-gray-600">{profileUser.email}</p>
-              </div>
-
-              {/* Action Button */}
-              {!isOwnProfile && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => router.push(`/messages?userId=${userId}`)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Message
-                  </button>
-                  {profileUser.isFriend ? (
-                    <button
-                      onClick={handleRemoveFriend}
-                      disabled={actionLoading}
-                      className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {actionLoading ? 'Removing...' : 'Remove Friend'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleAddFriend}
-                      disabled={actionLoading}
-                      className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {actionLoading ? 'Adding...' : 'Add Friend'}
-                    </button>
-                  )}
-                </div>
-              )}
+      {/* Profile Header Card */}
+      <div className={`rounded-3xl p-8 mb-8 transition-all duration-300 ${
+        darkMode 
+          ? 'bg-gray-800 border-2 border-gray-700 hover:border-gray-600 hover:shadow-xl' 
+          : 'bg-white border-2 border-gray-100 hover:border-gray-200 hover:shadow-xl'
+      }`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          {/* Avatar */}
+          <div className="relative">
+            <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-4xl">
+                {profileUser.name.charAt(0).toUpperCase()}
+              </span>
             </div>
-
-            {/* Bio */}
-            {profileUser.bio && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
-                <p className="text-gray-700">{profileUser.bio}</p>
+            {profileUser.isFriend && (
+              <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1.5 shadow-lg">
+                <Users className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
             )}
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">👥</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{profileUser.friendCount || 0}</p>
-                  <p className="text-sm text-gray-600">Friends</p>
-                </div>
+          {/* User Info */}
+          <div className="flex-1">
+            <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              {profileUser.name}
+            </h1>
+            {profileUser.major && (
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="w-5 h-5 text-indigo-600" strokeWidth={2} />
+                <p className="text-lg text-indigo-600 font-medium">{profileUser.major}</p>
               </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">📚</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{profileUser.classCount || 0}</p>
-                  <p className="text-sm text-gray-600">Classes</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">Level 2</p>
-                  <p className="text-sm text-gray-600">Progress</p>
-                </div>
-              </div>
+            )}
+            <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <Mail className="w-4 h-4" strokeWidth={2} />
+              <p className="text-sm">{profileUser.email}</p>
             </div>
           </div>
 
-          {/* Additional Info */}
-          {isOwnProfile && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Your Profile</h2>
-                <Link
-                  href="/settings"
-                  className="text-indigo-600 hover:text-indigo-700 font-medium"
+          {/* Action Buttons */}
+          <div className="flex gap-3 flex-wrap sm:flex-nowrap">
+            {isOwnProfile ? (
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-6 py-3 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:scale-105"
+              >
+                <Settings className="w-5 h-5" strokeWidth={2} />
+                Edit Profile
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push(`/messages?userId=${userId}`)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-6 py-3 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:scale-105"
                 >
-                  Edit Profile
-                </Link>
-              </div>
-              <p className="text-gray-600">
-                This is how other students see your profile. You can edit your information in Settings.
-              </p>
-            </div>
-          )}
+                  <MessageCircle className="w-5 h-5" strokeWidth={2} />
+                  Message
+                </button>
+                {profileUser.isFriend ? (
+                  <button
+                    onClick={handleRemoveFriend}
+                    disabled={actionLoading}
+                    className={`inline-flex items-center gap-2 border-2 font-medium px-6 py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                      darkMode
+                        ? 'bg-gray-700 border-red-600 text-red-400 hover:bg-red-900/20'
+                        : 'bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300'
+                    }`}
+                  >
+                    <UserMinus className="w-5 h-5" strokeWidth={2} />
+                    {actionLoading ? 'Removing...' : 'Remove Friend'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddFriend}
+                    disabled={actionLoading}
+                    className={`inline-flex items-center gap-2 border-2 font-medium px-6 py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                    }`}
+                  >
+                    <UserPlus className="w-5 h-5" strokeWidth={2} />
+                    {actionLoading ? 'Adding...' : 'Add Friend'}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-6">
-              {error}
-            </div>
-          )}
+        {/* Bio */}
+        {profileUser.bio && (
+          <div className={`mt-8 pt-8 border-t-2 ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+            <h2 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              About
+            </h2>
+            <p className={`leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {profileUser.bio}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="mb-8">
+        <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+          Stats
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {stats.map((stat, index) => (
+            <StatsCard key={index} stat={stat} darkMode={darkMode} />
+          ))}
         </div>
       </div>
-    </div>
+
+      {/* Error Message */}
+      {actionError && (
+        <div className={`mt-6 border-2 px-6 py-4 rounded-2xl ${
+          darkMode
+            ? 'bg-red-900/20 border-red-800 text-red-300'
+            : 'bg-red-50 border-red-200 text-red-700'
+        }`}>
+          <p className="font-medium">{actionError}</p>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={profileUser}
+        onSave={handleSaveProfile}
+        darkMode={darkMode}
+      />
+    </ProtectedPage>
   );
 }

@@ -1,6 +1,6 @@
 // controllers/postController.js
-import Post from "../models/Post.js";
-import Class from "../models/Class.js";
+import Post from "../models/post.js";
+import Class from "../models/class.js";
 
 // @desc    Create a post in a class
 // @route   POST /api/classes/:id/posts

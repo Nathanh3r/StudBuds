@@ -1,10 +1,9 @@
 // controllers/userController.js
 
 import bcrypt from "bcrypt";
-import User from "../models/User.js";
+import User from "../models/user.js";
 import { generateToken } from "../utils/genToken.js";
-import StudyGroup from "../models/StudyGroup.js";
-
+import StudyGroup from "../models/studyGroup.js";
 
 // @desc    Register a new user
 // @route   POST /api/users/register
@@ -279,10 +278,10 @@ export const getMyStudyGroups = async (req, res) => {
     const groups = await StudyGroup.find({ members: userId })
       .populate({
         path: "class",
-        select: "code name members", 
+        select: "code name members",
       })
       .populate("members", "name email")
-      .sort({ scheduledAt: 1 }); 
+      .sort({ scheduledAt: 1 });
 
     return res.json({ groups });
   } catch (error) {

@@ -1,6 +1,6 @@
 // backend/controllers/studyGroupController.js
 
-import StudyGroup from "../models/StudyGroup.js";
+import StudyGroup from "../models/studyGroup.js";
 import Class from "../models/class.js";
 
 // GET /api/classes/:id/study-groups
@@ -168,8 +168,6 @@ export const deleteStudyGroup = async (req, res) => {
     return res.json({ message: "Study group deleted successfully" });
   } catch (error) {
     console.error("deleteStudyGroup error:", error);
-    return res
-      .status(500)
-      .json({ message: "Failed to delete study group" });
+    return res.status(500).json({ message: "Failed to delete study group" });
   }
 };

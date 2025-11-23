@@ -1,6 +1,6 @@
 // backend/controllers/studySessionController.js
-import StudySession from "../models/StudySession.js";
-import Class from "../models/Class.js";
+import StudySession from "../models/studySession.js";
+import Class from "../models/class.js";
 
 // @desc    Create a study session
 // @route   POST /api/classes/:classId/study-sessions

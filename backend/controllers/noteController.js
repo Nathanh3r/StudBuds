@@ -1,6 +1,6 @@
 // backend/controllers/noteController.js
-import Note from "../models/Note.js";
-import Class from "../models/Class.js";
+import Note from "../models/note.js";
+import Class from "../models/class.js";
 
 // @desc    Get all notes for a class
 // @route   GET /api/classes/:classId/notes

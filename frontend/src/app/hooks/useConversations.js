@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchConversations } from "../lib/messages";
+import { fetchConversations } from "../lib/api/messages";
 
 /**
  * Custom hook for fetching and managing conversations

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchUserProfile } from "../lib/users";
+import { fetchUserProfile } from "../lib/api/users";
 
 /**
  * Custom hook for fetching a user's profile

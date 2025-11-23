@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchMyStudyGroups } from "../lib/users";
+import { fetchMyStudyGroups } from "../lib/api/users";
 
 /**
  * Custom hook for fetching user's study groups

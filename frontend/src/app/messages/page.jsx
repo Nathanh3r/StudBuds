@@ -16,8 +16,8 @@ import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
 
 // API
-import { fetchMessages, sendMessage, markMessagesAsRead } from '../lib/messages';
-import { fetchUserById } from '../lib/friends';
+import { fetchMessages, sendMessage, markMessagesAsRead } from '../lib/api/messages';
+import { fetchUserById } from '../lib/api/friends';
 
 export default function MessagesPage() {
   const { user, token, loading: authLoading } = useAuth();

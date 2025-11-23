@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiRequest } from '../lib/client';
+import { apiRequest } from '../lib/api/client';
 
 const AuthContext = createContext();
 

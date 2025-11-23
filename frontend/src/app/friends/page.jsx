@@ -16,7 +16,7 @@ import PageHeader from '../components/PageHeader';
 import LoadingScreen from '../components/LoadingScreen';
 
 // API
-import { searchUsers, addFriend, removeFriend } from '../lib/friends';
+import { searchUsers, addFriend, removeFriend } from '../lib/api/friends';
 
 export default function FriendsPage() {
   const { user, token, loading: authLoading } = useAuth();

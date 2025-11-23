@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchFriends } from "../lib/friends";
+import { fetchFriends } from "../lib/api/friends";
 
 /**
  * Custom hook for fetching and managing friends

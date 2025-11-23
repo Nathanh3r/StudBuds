@@ -12,7 +12,7 @@ import LoadingScreen from '../../components/LoadingScreen';
 import EmptyState from '../../components/EmptyState';
 import StatsCard from '../../components/StatsCard';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { addFriend, removeFriend, updateUserProfile } from '../../lib/users';
+import { addFriend, removeFriend, updateUserProfile } from '../../lib/api/users';
 import { 
   Mail, 
   MessageCircle, 

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { fetchClasses } from "../lib/classes";
+import { fetchClasses } from "../lib/api/classes";
 
 /**
  * Custom hook for fetching and managing classes

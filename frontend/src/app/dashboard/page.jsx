@@ -2,7 +2,7 @@
 'use client';
 
 import { useAuth } from '../context/AuthContext';
-import { useGamification } from '../context/GamificationContext'; // ✅ ADD
+import { useGamification } from '../context/GamificationContext'; 
 import { useDarkMode } from '../context/DarkModeContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -26,7 +26,7 @@ import {
 
 export default function DashboardPage() {
   const { user, token } = useAuth();
-  const { stats, loading: statsLoading } = useGamification(); // ✅ ADD
+  const { stats, loading: statsLoading } = useGamification(); 
   const { darkMode } = useDarkMode();
   const [greeting, setGreeting] = useState('');
 
@@ -42,7 +42,6 @@ export default function DashboardPage() {
     else setGreeting('Good evening');
   }, []);
 
-  // ✅ Helper function to format study time
   const formatStudyTime = (minutes) => {
     if (!minutes) return '0h 0m';
     const hours = Math.floor(minutes / 60);
@@ -50,12 +49,9 @@ export default function DashboardPage() {
     return `${hours}h ${mins}m`;
   };
 
-  // ✅ Dynamic stats using real gamification data
   const dashboardStats = [
     {
       label: 'Learning Streak',
-      // TODO: Backend needs to track login streaks
-      // For now, use streak from stats if available, otherwise show placeholder
       value: stats?.streak ? `${stats.streak} days` : 'Start today!',
       icon: Flame,
       bgColor: 'bg-orange-50',
@@ -63,8 +59,6 @@ export default function DashboardPage() {
     },
     {
       label: 'Total Study Time',
-      // TODO: Backend needs to sum all study session durations
-      // For now, use totalStudyMinutes if available, otherwise show placeholder
       value: stats?.totalStudyMinutes 
         ? formatStudyTime(stats.totalStudyMinutes) 
         : 'Log your first session!',
@@ -74,7 +68,6 @@ export default function DashboardPage() {
     },
     {
       label: 'Achievements',
-      // ✅ Real achievement count from gamification
       value: stats?.achievements?.length?.toString() || '0',
       icon: Trophy,
       bgColor: 'bg-amber-50',
@@ -82,7 +75,6 @@ export default function DashboardPage() {
     },
     {
       label: 'Current Level',
-      // ✅ Real level and XP from gamification
       value: stats?.level ? `Level ${stats.level}` : 'Level 1',
       subValue: stats?.xp ? `${stats.xp.toLocaleString()} XP` : '0 XP',
       icon: Star,

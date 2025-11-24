@@ -7,17 +7,17 @@ import {
   Lightbulb, Rocket, Star, Zap, TrendingUp, Award
 } from "lucide-react";
 
-/* NAVBAR COMPONENT
-  Clean top navigation bar - transparent and not sticky
-*/
 function Navbar() {
   return (
     <header className="absolute top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
         {/* Brand logo and name */}
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-xl text-gray-900">StudBuds</span>
-        </div>
+        <Link href="/" className="flex items-center group">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-105 transition-all">
+            <Users className="w-5 h-5" strokeWidth={3.5} />
+          </div>
+          <span className="font-bold text-2xl text-gray-900">StudBuds</span>
+        </Link>
 
         {/* Navigation links */}
         <nav className="flex items-center gap-4">
@@ -152,13 +152,13 @@ function StatsSection() {
 
 function Mission() {
   const features = [
-    { icon: Users, title: "Connect", color: "text-blue-600", bg: "bg-blue-50" },
-    { icon: MessageSquare, title: "Collaborate", color: "text-purple-600", bg: "bg-purple-50" },
-    { icon: BookOpen, title: "Study better", color: "text-indigo-600", bg: "bg-indigo-50" },
-    { icon: FileText, title: "Share notes", color: "text-green-600", bg: "bg-green-50" },
-    { icon: Trophy, title: "Stay motivated", color: "text-yellow-600", bg: "bg-yellow-50" },
-    { icon: Target, title: "Set goals", color: "text-red-600", bg: "bg-red-50" },
-    { icon: Sparkles, title: "Track progress", color: "text-pink-600", bg: "bg-pink-50" },
+    { icon: Users, title: "Connect" },
+    { icon: MessageSquare, title: "Collaborate" },
+    { icon: BookOpen, title: "Study better" },
+    { icon: FileText, title: "Share notes" },
+    { icon: Trophy, title: "Stay motivated" },
+    { icon: Target, title: "Set goals" },
+    { icon: Sparkles, title: "Track progress" },
   ];
 
   return (
@@ -186,8 +186,8 @@ function Mission() {
                 key={index}
                 className="flex flex-col items-center group cursor-pointer"
               >
-                <div className={`w-20 h-20 ${feature.bg} rounded-2xl shadow-lg flex items-center justify-center mb-3 transition-all group-hover:scale-110 duration-300`}>
-                  <Icon className={`w-10 h-10 ${feature.color}`} strokeWidth={2} />
+                <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 rounded-2xl shadow-xl shadow-indigo-500/30 flex items-center justify-center mb-3 transition-all group-hover:scale-110 group-hover:shadow-2xl group-hover:shadow-indigo-500/40 duration-300">
+                  <Icon className="w-10 h-10 text-white" strokeWidth={2.5} />
                 </div>
                 <p className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   {feature.title}
@@ -287,9 +287,6 @@ function Footer() {
   );
 }
 
-/* HOMEPAGE MAIN COMPONENT
-  Combines all sections with gradient splotch background
-*/
 export default function HomePage() {
   return (
     <div className="snap-y snap-proximity overflow-y-scroll h-screen relative">
@@ -343,6 +340,21 @@ export default function HomePage() {
           style={{ backgroundColor: '#6366F1', opacity: 0.15 }}
         />
       </div>
+
+
+    {/* <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+
+      
+      <div className="absolute top-30 left-20 w-30 h-30 bg-indigo-300 rounded-3xl -rotate-12 shape-float-very-slow" style={{ opacity: 1}}></div>
+      <div className="absolute top-150 left-2/3 w-20 h-20 bg-indigo-400 rounded-full shape-float-medium" style={{ opacity: 1 }}></div>
+      <div className="absolute top-100 right-20 w-36 h-36 bg-purple-300 rotate-30 rounded-2xl shape-float-slow" style={{ opacity: 1 }}></div>
+      
+      
+      <div className="absolute bottom-20 left-1/4 w-20 h-20 bg-purple-400 shape-float-fast rotate-10" style={{ opacity: 1 }}></div>
+      <div className="absolute top-24 right-20 w-30 h-30 bg-purple-300 rounded-3xl rotate-12 shape-float-very-slow" style={{ opacity: 1 }}></div>
+      <div className="absolute top-30 left-1/2 w-28 h-28 bg-indigo-400 rotate-45 shape-float-medium" style={{ opacity: 1 }}></div>
+      
+    </div> */}
 
       {/* Content - all positioned above splotches */}
       <div className="relative z-10">

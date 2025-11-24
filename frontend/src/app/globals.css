@@ -397,3 +397,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Custom shape animations with different speeds */
+.shape-float-slow {
+  animation: float1 70s ease-in-out infinite;
+}
+
+.shape-float-medium {
+  animation: float2 70s ease-in-out infinite;
+}
+
+.shape-float-fast {
+  animation: float1 70s ease-in-out infinite;
+}
+
+.shape-float-very-slow {
+  animation: float2 70s ease-in-out infinite;
+}

@@ -23,11 +23,17 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "StudBuds",
   description: "Study together, level up, and stay connected.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <DarkModeProvider>
           <AuthProvider>

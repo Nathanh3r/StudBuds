@@ -1,5 +1,5 @@
 // backend/controllers/studySessionController.js
-import StudySession from "../models/studySession.js";
+import StudySession from "../models/studysession.js";
 import Class from "../models/class.js";
 import { awardXP } from "../services/xpService.js";
 

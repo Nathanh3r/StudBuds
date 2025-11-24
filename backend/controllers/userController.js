@@ -3,7 +3,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.js";
 import { generateToken } from "../utils/genToken.js";
-import StudyGroup from "../models/studyGroup.js";
+import StudyGroup from "../models/studygroup.js";
 import { awardXP, updateLoginStreak } from "../services/xpService.js";
 
 // @desc    Register a new user

@@ -1,6 +1,6 @@
 // backend/controllers/studyGroupController.js
 
-import StudyGroup from "../models/studyGroup.js";
+import StudyGroup from "../models/studygroup.js";
 import Class from "../models/class.js";
 import { awardXP } from "../services/xpService.js";
 
@@ -58,7 +58,7 @@ export const createStudyGroup = async (req, res) => {
 
     return res.status(201).json({
       group: populated,
-      xpAwarded: xpResult || null, 
+      xpAwarded: xpResult || null,
     });
   } catch (error) {
     console.error("createStudyGroup error:", error);

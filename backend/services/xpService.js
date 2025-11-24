@@ -1,7 +1,7 @@
 // services/xpService.js
 
 import User from "../models/user.js";
-import StudySession from "../models/studySession.js";
+import StudySession from "../models/studysession.js";
 import {
   XP_VALUES,
   DAILY_LIMITS,

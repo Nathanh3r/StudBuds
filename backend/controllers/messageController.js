@@ -1,6 +1,7 @@
 // controllers/messageController.js
 import Message from "../models/message.js";
 import User from "../models/user.js";
+import { awardXP } from "../services/xpService.js";
 
 // Send a message
 export const sendMessage = async (req, res) => {
@@ -28,7 +29,13 @@ export const sendMessage = async (req, res) => {
     // Populate sender info for response
     await message.populate("sender", "name email major");
 
-    res.status(201).json(message);
+    // 🎮 Award XP for sending message (with daily limit)
+    const xpResult = await awardXP(req.user.id, "SEND_MESSAGE");
+
+    res.status(201).json({
+      ...message.toObject(),
+      xpAwarded: xpResult.awarded ? xpResult : null,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

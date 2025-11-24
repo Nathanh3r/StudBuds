@@ -1,3 +1,4 @@
+// models/user.js
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
@@ -54,6 +55,72 @@ const userSchema = new mongoose.Schema(
     isVerified: {
       type: Boolean,
       default: false,
+    },
+
+    // 🎮 GAMIFICATION FIELDS
+    gamification: {
+      // Core stats
+      xp: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      level: {
+        type: Number,
+        default: 1,
+        min: 1,
+      },
+
+      // Activity counters (for achievements)
+      studySessionCount: {
+        type: Number,
+        default: 0,
+      },
+      notesUploadedCount: {
+        type: Number,
+        default: 0,
+      },
+      postsCreatedCount: {
+        type: Number,
+        default: 0,
+      },
+
+      // Achievements
+      achievements: [
+        {
+          achievementId: String,
+          unlockedAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+
+      // Streak tracking
+      streak: {
+        count: {
+          type: Number,
+          default: 0,
+        },
+        lastLoginDate: {
+          type: Date,
+          default: null,
+        },
+      },
+
+      // Daily activity tracking (to prevent XP farming)
+      dailyActivity: {
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        actions: {
+          CREATE_POST: { type: Number, default: 0 },
+          SEND_MESSAGE: { type: Number, default: 0 },
+          DOWNLOAD_NOTE: { type: Number, default: 0 },
+          CREATE_FLASHCARD: { type: Number, default: 0 },
+        },
+      },
     },
   },
   { timestamps: true }

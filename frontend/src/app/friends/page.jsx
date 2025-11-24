@@ -1,3 +1,4 @@
+// app/friends/page.jsx
 'use client';
 
 import { useState } from 'react';
@@ -6,6 +7,7 @@ import { Search, UserPlus, Users, MessageCircle, User, AlertCircle, Check } from
 
 // Context & Hooks
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext'; 
 import { useSidebar } from '../context/SidebarContext';
 import { useDarkMode } from '../context/DarkModeContext';
 import { useFriends } from '../hooks/useFriends';
@@ -20,6 +22,7 @@ import { searchUsers, addFriend, removeFriend } from '../lib/api/friends';
 
 export default function FriendsPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { handleXPAward } = useGamification(); 
   const { isCollapsed } = useSidebar();
   const { darkMode } = useDarkMode();
   const router = useRouter();
@@ -55,7 +58,12 @@ export default function FriendsPage() {
 
   const handleAddFriend = async (userId) => {
     try {
-      await addFriend(userId, token);
+      const data = await addFriend(userId, token);
+      
+      if (data.xpAwarded) {
+        handleXPAward(data.xpAwarded);
+      }
+      
       await refetch();
       setSearchResults(searchResults.filter(u => u._id !== userId));
     } catch (err) {

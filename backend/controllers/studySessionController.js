@@ -1,6 +1,7 @@
 // backend/controllers/studySessionController.js
 import StudySession from "../models/studySession.js";
 import Class from "../models/class.js";
+import { awardXP } from "../services/xpService.js";
 
 // @desc    Create a study session
 // @route   POST /api/classes/:classId/study-sessions
@@ -56,9 +57,11 @@ export const createStudySession = async (req, res) => {
     await studySession.save();
     await studySession.populate("userId", "name major");
 
+    const xpResult = await awardXP(req.user.id, "LOG_STUDY_SESSION");
     res.status(201).json({
       message: "Study session logged successfully",
       studySession,
+      xpAwarded: xpResult.awarded ? xpResult : null,
     });
   } catch (error) {
     console.error("Error creating study session:", error);

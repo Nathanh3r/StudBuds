@@ -2,6 +2,7 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
+import { useGamification } from '../../context/GamificationContext'; 
 import { useSidebar } from '../../context/SidebarContext';
 import { useDarkMode } from '../../context/DarkModeContext';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
@@ -20,6 +21,7 @@ import Link from 'next/link';
   
 export default function CourseDetailPage() {
   const { token, user, loading: authLoading } = useAuth();
+  const { handleXPAward } = useGamification(); 
   const { isCollapsed } = useSidebar();
   const { darkMode } = useDarkMode();
   const router = useRouter();
@@ -80,10 +82,19 @@ export default function CourseDetailPage() {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      
+      const data = await res.json();
+      
       if (res.ok) {
-        window.location.reload();
+        if (data.xpAwarded) {
+          handleXPAward(data.xpAwarded);
+        }
+        
+        // Refresh page after short delay to show XP notification
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
-        const data = await res.json();
         setError(data.message || 'Failed to join class');
       }
     } catch (err) {

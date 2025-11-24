@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import User from "../models/user.js";
 import { generateToken } from "../utils/genToken.js";
 import StudyGroup from "../models/studyGroup.js";
+import { awardXP, updateLoginStreak } from "../services/xpService.js";
 
 // @desc    Register a new user
 // @route   POST /api/users/register
@@ -60,6 +61,9 @@ export const loginUser = async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
+
+    // 🎮 Update login streak
+    await updateLoginStreak(user._id);
 
     const token = generateToken(user._id);
     const safeUser = await User.findById(user._id).select("-password");
@@ -128,6 +132,15 @@ export const addFriend = async (req, res) => {
     if (!me.friends.map(String).includes(targetId)) {
       me.friends.push(target._id);
       await me.save();
+
+      // 🎮 Award XP for adding friend
+      const xpResult = await awardXP(meId, "ADD_FRIEND");
+
+      const safeUser = await User.findById(meId).select("-password");
+      return res.json({
+        user: safeUser,
+        xpAwarded: xpResult.awarded ? xpResult : null,
+      });
     }
 
     const safeUser = await User.findById(meId).select("-password");
@@ -172,7 +185,7 @@ export const getUserProfile = async (req, res) => {
     const userId = req.params.id;
 
     const user = await User.findById(userId).select(
-      "name email major bio classes friends"
+      "name email major bio classes friends gamification"
     );
 
     if (!user) {
@@ -193,6 +206,13 @@ export const getUserProfile = async (req, res) => {
         isFriend,
         friendCount: user.friends.length,
         classCount: user.classes.length,
+        // Include gamification stats in profile
+        gamification: {
+          level: user.gamification?.level || 1,
+          xp: user.gamification?.xp || 0,
+          achievements: user.gamification?.achievements?.length || 0,
+          streak: user.gamification?.streak?.count || 0,
+        },
       },
     });
   } catch (err) {
@@ -258,7 +278,7 @@ export const searchUsers = async (req, res) => {
       $or: [{ name: searchRegex }, { email: searchRegex }],
       _id: { $ne: req.user._id }, // Exclude current user
     })
-      .select("name email major bio")
+      .select("name email major bio gamification.level gamification.xp")
       .limit(20); // Limit results
 
     return res.json({

@@ -3,6 +3,11 @@ import { AuthProvider } from './context/AuthContext';
 import { SidebarProvider } from './context/SidebarContext';
 import { DarkModeProvider } from './context/DarkModeContext'; 
 
+import { GamificationProvider } from './context/GamificationContext'; 
+import XPNotification from './components/XPNotification'; 
+import LevelUpModal from './components/LevelUpModal'; 
+import AchievementToast from './components/AchievementToast'; 
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -27,7 +32,12 @@ export default function RootLayout({ children }) {
         <DarkModeProvider>
           <AuthProvider>
             <SidebarProvider>
-              {children}
+             <GamificationProvider>
+                {children}
+                <XPNotification />
+                <LevelUpModal />
+                <AchievementToast />
+              </GamificationProvider>
             </SidebarProvider>
           </AuthProvider>
         </DarkModeProvider>

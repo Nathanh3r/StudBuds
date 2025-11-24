@@ -1,6 +1,7 @@
 // controllers/postController.js
 import Post from "../models/post.js";
 import Class from "../models/class.js";
+import { awardXP } from "../services/xpService.js";
 
 // @desc    Create a post in a class
 // @route   POST /api/classes/:id/posts
@@ -37,6 +38,8 @@ export const createPost = async (req, res) => {
     await post.save();
     await post.populate("author", "name major");
 
+    const xpResult = await awardXP(req.user.id, "CREATE_POST");
+
     res.status(201).json({
       message: "Post created successfully",
       post: {
@@ -46,6 +49,7 @@ export const createPost = async (req, res) => {
         author: post.author,
         createdAt: post.createdAt,
       },
+      xpAwarded: xpResult.awarded ? xpResult : null, // Include XP info
     });
   } catch (error) {
     console.error("Error creating post:", error);

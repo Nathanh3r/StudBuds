@@ -2,6 +2,7 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
+import { useGamification } from '../../context/GamificationContext'; 
 import { useDarkMode } from '../../context/DarkModeContext';
 import { useRouter, useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -23,12 +24,14 @@ import {
   Award,
   Settings,
   Briefcase,
-  User
+  User,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function UserProfilePage() {
   const { token, user: currentUser } = useAuth();
+  const { stats, loading: statsLoading } = useGamification(); 
   const { darkMode } = useDarkMode();
   const router = useRouter();
   const params = useParams();
@@ -95,7 +98,7 @@ export default function UserProfilePage() {
 
   const isOwnProfile = currentUser._id === profileUser._id;
 
-  const stats = [
+  const profileStats = [
     {
       label: 'Friends',
       value: profileUser.friendCount || 0,
@@ -112,11 +115,18 @@ export default function UserProfilePage() {
     },
     {
       label: 'Level',
-      value: '2',
+      value: isOwnProfile && stats ? stats.level : '?',
       icon: Award,
       bgColor: 'bg-amber-50',
       iconColor: 'text-amber-600',
     },
+    ...(isOwnProfile && stats ? [{
+      label: 'Total XP',
+      value: stats.xp?.toLocaleString() || '0',
+      icon: Zap,
+      bgColor: 'bg-purple-50',
+      iconColor: 'text-purple-600',
+    }] : []),
   ];
 
   return (
@@ -133,14 +143,23 @@ export default function UserProfilePage() {
           : 'bg-white border-2 border-gray-100 hover:border-gray-200 hover:shadow-xl'
       }`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          {/* Avatar */}
+          {/* Avatar with Level Badge */}
           <div className="relative">
             <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-4xl">
                 {profileUser.name.charAt(0).toUpperCase()}
               </span>
             </div>
-            {profileUser.isFriend && (
+            {isOwnProfile && stats && (
+              <div className={`absolute -bottom-2 -right-2 rounded-full p-2 shadow-lg ${
+                darkMode ? 'bg-purple-300' : 'bg-purple-200'
+              }`}>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold text-indigo-900">{stats.level}</span>
+                </div>
+              </div>
+            )}
+            {profileUser.isFriend && !isOwnProfile && (
               <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1.5 shadow-lg">
                 <Users className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
@@ -152,6 +171,14 @@ export default function UserProfilePage() {
             <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               {profileUser.name}
             </h1>
+            {isOwnProfile && stats && (
+              <div className="flex items-center gap-2 mb-2">
+                <Award className="w-5 h-5 text-purple-600" strokeWidth={2} />
+                <p className="text-lg font-medium" style={{ color: stats.rankColor || '#8b5cf6' }}>
+                  {stats.rank}
+                </p>
+              </div>
+            )}
             {profileUser.major && (
               <div className="flex items-center gap-2 mb-2">
                 <Briefcase className="w-5 h-5 text-indigo-600" strokeWidth={2} />
@@ -233,12 +260,62 @@ export default function UserProfilePage() {
         <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Stats
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {stats.map((stat, index) => (
+        <div className={`grid gap-4 ${
+          isOwnProfile && stats 
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
+            : 'grid-cols-1 sm:grid-cols-3'
+        }`}>
+          {profileStats.map((stat, index) => (
             <StatsCard key={index} stat={stat} darkMode={darkMode} />
           ))}
         </div>
       </div>
+
+      {isOwnProfile && stats && (
+        <div className="mb-8">
+          <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            Level Progress
+          </h2>
+          <div className={`rounded-3xl p-6 ${
+            darkMode 
+              ? 'bg-gray-800 border-2 border-gray-700' 
+              : 'bg-white border-2 border-gray-100'
+          }`}>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Level {stats.level}
+                </p>
+                <p className="text-2xl font-bold" style={{ color: stats.rankColor || '#8b5cf6' }}>
+                  {stats.rank}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Progress to Level {stats.level + 1}
+                </p>
+                <p className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                  {stats.progress?.currentXP || 0} / {stats.progress?.xpNeeded || 0} XP
+                </p>
+              </div>
+            </div>
+            <div className={`w-full h-4 rounded-full overflow-hidden ${
+              darkMode ? 'bg-gray-700' : 'bg-gray-200'
+            }`}>
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${stats.progress?.percentage || 0}%`,
+                  background: `linear-gradient(90deg, ${stats.rankColor || '#8b5cf6'}, ${stats.rankColor || '#8b5cf6'}dd)`,
+                }}
+              />
+            </div>
+            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {stats.progress?.percentage || 0}% complete
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Error Message */}
       {actionError && (

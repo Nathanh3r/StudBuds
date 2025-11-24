@@ -170,34 +170,47 @@ export const searchClasses = async (req, res) => {
 // @access  Private
 export const getClassById = async (req, res) => {
   try {
-    const classData = await Class.findById(req.params.id)
-      .populate("members", "_id name major year")
-      .populate("instructor", "name email");
+    const classData = await Class.findById(req.params.id).populate(
+      "members",
+      "name major bio"
+    );
 
     if (!classData) {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    // Ensure creator is a member
-    if (!classData.members.some(m => m._id.toString() === classData.createdBy.toString())) {
-      classData.members.push(classData.createdBy);
-      await classData.save();
-    }
-
-    // Compute membership correctly
     const isCurrentUserMember = classData.members.some(
-      (m) => m._id.toString() === req.user._id.toString()
+      (member) => member._id.toString() === req.user.id
     );
 
-    return res.json({
-      ...classData.toObject(),
+    res.json({
+      _id: classData._id,
+      name: classData.name,
+      code: classData.code,
+      description: classData.description,
+      department: classData.department,
+      departmentCode: classData.departmentCode,
+      courseNumber: classData.courseNumber,
+      term: classData.term,
+      termCode: classData.termCode,
+      year: classData.year,
+      units: classData.units,
+      instructor: classData.instructor,
+      meetingTimes: classData.meetingTimes,
+      sections: classData.sections,
+      isUserCreated: classData.isUserCreated,
       memberCount: classData.members.length,
+      members: classData.members,
       isCurrentUserMember,
+      createdBy: classData.createdBy,
+      createdAt: classData.createdAt,
     });
-
   } catch (error) {
     console.error("Error fetching class:", error);
-    res.status(500).json({ message: "Server error" });
+    if (error.kind === "ObjectId") {
+      return res.status(404).json({ message: "Class not found" });
+    }
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 

@@ -46,7 +46,8 @@ export async function createStudyGroup(classId, groupData, token) {
       }),
     }
   );
-  return data.group;
+  //{ group, xpAwarded }
+  return data;
 }
 
 /**
@@ -62,7 +63,7 @@ export async function joinStudyGroup(classId, groupId, token) {
     token,
     { method: "POST" }
   );
-  return data.group;
+  return data;
 }
 
 /**

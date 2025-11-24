@@ -13,6 +13,8 @@ import {
 import LoadingSpinner from '../LoadingSpinner';
 import EmptyState from '../EmptyState';
 import { Users } from 'lucide-react';
+import { useGamification } from '../../context/GamificationContext';
+
 
 /**
  * StudyGroups Component
@@ -30,7 +32,7 @@ import { Users } from 'lucide-react';
 export default function StudyGroups({ classId, token, user }) {
   const { darkMode } = useDarkMode();
   const { studyGroups, loading, refetch, setStudyGroups } = useStudyGroups(classId, token);
-  
+  const { handleXPAward } = useGamification();
   const [groupActionLoading, setGroupActionLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newGroup, setNewGroup] = useState({
@@ -51,12 +53,18 @@ export default function StudyGroups({ classId, token, user }) {
     setGroupActionLoading(true);
 
     try {
-      const group = await createStudyGroup(classId, newGroup, token);
-      
-      // Optimistic update
+      const { group, xpAwarded } = await createStudyGroup(
+        classId,
+        newGroup,
+        token
+      );
+
+      if (xpAwarded) {
+        handleXPAward(xpAwarded);
+      }
+
       setStudyGroups((prev) => [group, ...prev]);
 
-      // Reset form
       setNewGroup({
         name: '',
         description: '',
@@ -75,9 +83,16 @@ export default function StudyGroups({ classId, token, user }) {
     setGroupActionLoading(true);
 
     try {
-      const updatedGroup = await joinStudyGroup(classId, groupId, token);
-      
-      // Optimistic update
+      const { group: updatedGroup, xpAwarded } = await joinStudyGroup(
+        classId,
+        groupId,
+        token
+      );
+
+      if (xpAwarded) {
+        handleXPAward(xpAwarded);
+      }
+
       setStudyGroups((prev) =>
         prev.map((g) => (g._id === groupId ? updatedGroup : g))
       );
@@ -87,6 +102,7 @@ export default function StudyGroups({ classId, token, user }) {
       setGroupActionLoading(false);
     }
   };
+
 
   const handleLeaveGroup = async (groupId) => {
     setGroupActionLoading(true);

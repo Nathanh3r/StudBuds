@@ -66,7 +66,6 @@ export const createStudyGroup = async (req, res) => {
   }
 };
 
-// POST /api/classes/:id/study-groups/:groupId/join
 export const joinStudyGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -81,9 +80,17 @@ export const joinStudyGroup = async (req, res) => {
       (m) => m.toString() === userId.toString()
     );
 
+    let xpResult = null;
+
     if (!alreadyMember) {
       group.members.push(userId);
       await group.save();
+
+      // xp for joining a group
+      xpResult = await awardXP(userId, "JOIN_STUDY_GROUP", {
+        classId: group.class,
+        studyGroupId: group._id,
+      });
     }
 
     const populated = await StudyGroup.findById(group._id)
@@ -91,7 +98,10 @@ export const joinStudyGroup = async (req, res) => {
       .populate("members", "name email major")
       .populate("class", "code name");
 
-    return res.json({ group: populated });
+    return res.json({
+      group: populated,
+      xpAwarded: xpResult && xpResult.awarded ? xpResult : null, // NEW
+    });
   } catch (error) {
     console.error("joinStudyGroup error:", error);
     return res.status(500).json({ message: "Failed to join study group" });

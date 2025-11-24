@@ -8,7 +8,7 @@ yarn-error.log*
 
 # Environment variables
 .env
-
+.env.test
 # OS files
 .DS_Store
 
@@ -17,7 +17,7 @@ dist/
 
 # Test files
 testUsers.js
-
+coverage/
 
 .vscode/
 .editorconfig

@@ -4,15 +4,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext'; 
 import { useSidebar } from '../context/SidebarContext';
 import { useDarkMode } from '../context/DarkModeContext';
-import { Home, Compass, BookOpen, Users, MessageCircle, Settings, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Home, Compass, BookOpen, Users, MessageCircle, Settings, ChevronsLeft, ChevronsRight, Trophy } from 'lucide-react';
 
 export default function Sidebar() { 
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { stats, loading: statsLoading } = useGamification(); 
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { darkMode } = useDarkMode();
+
+  const level = stats?.level || 1;
+  const rank = stats?.rank || 'Freshman';
 
   const navItems = [
     { name: 'Home', href: '/dashboard', icon: Home },
@@ -44,13 +49,12 @@ export default function Sidebar() {
         >
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white font-medium text-lg shadow-lg shadow-indigo-500/20 relative">
             {user?.name?.charAt(0).toUpperCase() || 'U'}
-            {/* Level Badge */}
             <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
               darkMode 
                 ? 'bg-purple-300 border-gray-800' 
                 : 'bg-purple-200 border-white'
             }`}>
-              <span className="text-xs font-bold text-indigo-900">2</span>
+              <span className="text-xs font-bold text-indigo-900">{level}</span>
             </div>
           </div>
         </Link>
@@ -113,17 +117,15 @@ export default function Sidebar() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white font-medium text-xl shadow-lg shadow-indigo-500/20">
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
-          {/* Level Badge */}
           <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
             darkMode 
               ? 'bg-purple-300 border-gray-800' 
               : 'bg-purple-200 border-white'
           }`}>
-            <span className="text-xs font-bold text-indigo-900">2</span>
+            <span className="text-xs font-bold text-indigo-900">{level}</span>
           </div>
         </div>
 
-        {/* Name and Level */}
         <div className="flex-1 min-w-0">
           <p className={`font-semibold truncate text-base ${
             darkMode ? 'text-white' : 'text-gray-900'
@@ -132,7 +134,9 @@ export default function Sidebar() {
           </p>
           <p className={`text-sm ${
             darkMode ? 'text-gray-400' : 'text-gray-500'
-          }`}>Level 2 Explorer</p>
+          }`}>
+            {statsLoading ? 'Loading...' : `Level ${level} ${rank}`}
+          </p>
         </div>
 
         {/* Hover Arrow */}

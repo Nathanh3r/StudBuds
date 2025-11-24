@@ -2,6 +2,7 @@
 import Class from "../models/class.js";
 import User from "../models/user.js";
 import mongoose from "mongoose";
+import { awardXP } from "../services/xpService.js";
 
 // @desc    Create a new class
 // @route   POST /api/classes
@@ -104,7 +105,7 @@ export const getAllClasses = async (req, res) => {
     const classes = await Class.find(query)
       .sort({ isUserCreated: -1, code: 1 }) // User-created first, then by code
       .select(
-        "name code description department departmentCode units instructor meetingTimes members isUserCreated term termCode year createdBy createdAt" // ADDED: term, termCode, year
+        "name code description department departmentCode units instructor meetingTimes members isUserCreated term termCode year createdBy createdAt"
       );
 
     const classesWithData = classes.map((cls) => ({
@@ -237,6 +238,7 @@ export const joinClass = async (req, res) => {
       $addToSet: { classes: classData._id },
     });
 
+    const xpResult = await awardXP(req.user.id, "JOIN_CLASS");
     res.json({
       message: "Successfully joined class",
       class: {
@@ -245,6 +247,7 @@ export const joinClass = async (req, res) => {
         code: classData.code,
         memberCount: classData.members.length,
       },
+      xpAwarded: xpResult.awarded ? xpResult : null,
     });
   } catch (error) {
     console.error("Error joining class:", error);
@@ -260,7 +263,7 @@ export const joinClass = async (req, res) => {
 // @access  Private
 export const leaveClass = async (req, res) => {
   try {
-    const classData = await classData.findById(req.params.id);
+    const classData = await Class.findById(req.params.id);
 
     if (!classData) {
       return res.status(404).json({ message: "class not found" });
@@ -278,7 +281,7 @@ export const leaveClass = async (req, res) => {
     await classData.save();
 
     await User.findByIdAndUpdate(req.user.id, {
-      $pull: { classs: classData._id },
+      $pull: { classes: classData._id },
     });
 
     res.json({

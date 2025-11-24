@@ -2,6 +2,7 @@
 'use client';
 
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext'; // ✅ ADD
 import { useDarkMode } from '../context/DarkModeContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -25,6 +26,7 @@ import {
 
 export default function DashboardPage() {
   const { user, token } = useAuth();
+  const { stats, loading: statsLoading } = useGamification(); // ✅ ADD
   const { darkMode } = useDarkMode();
   const [greeting, setGreeting] = useState('');
 
@@ -40,40 +42,56 @@ export default function DashboardPage() {
     else setGreeting('Good evening');
   }, []);
 
-  // Stats configuration - replace with real data from API later
-  const stats = [
+  // ✅ Helper function to format study time
+  const formatStudyTime = (minutes) => {
+    if (!minutes) return '0h 0m';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  // ✅ Dynamic stats using real gamification data
+  const dashboardStats = [
     {
       label: 'Learning Streak',
-      value: '7 days',
+      // TODO: Backend needs to track login streaks
+      // For now, use streak from stats if available, otherwise show placeholder
+      value: stats?.streak ? `${stats.streak} days` : 'Start today!',
       icon: Flame,
       bgColor: 'bg-orange-50',
       iconColor: 'text-orange-600',
     },
     {
       label: 'Total Study Time',
-      value: '24h 15m',
+      // TODO: Backend needs to sum all study session durations
+      // For now, use totalStudyMinutes if available, otherwise show placeholder
+      value: stats?.totalStudyMinutes 
+        ? formatStudyTime(stats.totalStudyMinutes) 
+        : 'Log your first session!',
       icon: Clock,
       bgColor: 'bg-blue-50',
       iconColor: 'text-blue-600',
     },
     {
       label: 'Achievements',
-      value: '12',
+      // ✅ Real achievement count from gamification
+      value: stats?.achievements?.length?.toString() || '0',
       icon: Trophy,
       bgColor: 'bg-amber-50',
       iconColor: 'text-amber-600',
     },
     {
       label: 'Current Level',
-      value: 'Level 8',
-      subValue: '2,450 XP',
+      // ✅ Real level and XP from gamification
+      value: stats?.level ? `Level ${stats.level}` : 'Level 1',
+      subValue: stats?.xp ? `${stats.xp.toLocaleString()} XP` : '0 XP',
       icon: Star,
       bgColor: 'bg-purple-50',
       iconColor: 'text-purple-600',
     },
   ];
 
-  if (classesLoading || groupsLoading) return <LoadingScreen />;
+  if (classesLoading || groupsLoading || statsLoading) return <LoadingScreen />;
 
   return (
     <ProtectedPage>
@@ -89,7 +107,7 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="mb-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {stats.map((stat, index) => (
+          {dashboardStats.map((stat, index) => (
             <StatsCard key={index} stat={stat} darkMode={darkMode} />
           ))}
         </div>

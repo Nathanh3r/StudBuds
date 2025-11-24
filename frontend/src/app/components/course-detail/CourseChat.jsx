@@ -3,6 +3,7 @@
 
 import { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useGamification } from '../../context/GamificationContext'; 
 import { useCoursePosts } from '../../hooks/useCourseActivity';
 import {
   createCoursePost,
@@ -27,6 +28,7 @@ import { MessageCircle } from 'lucide-react';
  */
 export default function CourseChat({ classId, token, baseUrl }) {
   const { user } = useAuth();
+  const { handleXPAward } = useGamification(); 
   const { messages, count, loading, refetch, setMessages } = useCoursePosts(classId, token);
   
   const [newMessage, setNewMessage] = useState('');
@@ -43,7 +45,12 @@ export default function CourseChat({ classId, token, baseUrl }) {
 
     setSending(true);
     try {
-      await createCoursePost(classId, newMessage, token);
+      const data = await createCoursePost(classId, newMessage, token);
+      
+      if (data.xpAwarded) {
+        handleXPAward(data.xpAwarded);
+      }
+      
       setNewMessage('');
       refetch();
     } catch (error) {

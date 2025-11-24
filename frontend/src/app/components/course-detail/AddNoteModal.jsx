@@ -1,12 +1,13 @@
 // app/components/course-detail/AddNoteModal.jsx
 'use client';
-
+import { useGamification } from '../../context/GamificationContext';
 import { useState, useEffect } from 'react';
 
 export default function AddNoteModal({ isOpen, onClose, onNoteUploaded, classId, token, baseUrl }) {
+  const { handleXPAward } = useGamification();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false); // ADDED
+  const [success, setSuccess] = useState(false); 
 
   useEffect(() => {
     if (isOpen) {
@@ -38,16 +39,20 @@ export default function AddNoteModal({ isOpen, onClose, onNoteUploaded, classId,
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
+            const data = await res.json();
       
       if (res.ok) {
-        setSuccess(true); // ADDED
-        e.target.reset(); // ADDED: Reset form
+        if (data.xpAwarded) {
+          handleXPAward(data.xpAwarded);
+        }
+        
+        setSuccess(true); 
+        e.target.reset(); 
         // Close modal after a short delay to show success message
         setTimeout(() => {
           onNoteUploaded();
         }, 1500);
       } else {
-        const data = await res.json();
         setError(data.message || 'Failed to upload note');
       }
     } catch (error) {
@@ -95,7 +100,6 @@ export default function AddNoteModal({ isOpen, onClose, onNoteUploaded, classId,
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* ADDED: Success message */}
           {success && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import studySessionRoutes from "./routes/studySessionRoutes.js";
+import gamificationRoutes from "./routes/gamificationRoutes.js";
 import path from "path";
 import { protect } from "./middleware/authMiddleware.js";
 import { trackDownload } from "./controllers/noteController.js";
@@ -53,6 +54,7 @@ app.use("/api/classes", classRoutes);
 app.use("/api/study-sessions", studySessionRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/study-groups", studyGroupRoutes);
+app.use("/api/gamification", gamificationRoutes);
 
 // Start server
 app.listen(PORT, () => {

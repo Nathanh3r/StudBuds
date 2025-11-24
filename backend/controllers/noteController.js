@@ -1,6 +1,7 @@
 // backend/controllers/noteController.js
 import Note from "../models/note.js";
 import Class from "../models/class.js";
+import { awardXP } from "../services/xpService.js";
 
 // @desc    Get all notes for a class
 // @route   GET /api/classes/:classId/notes
@@ -92,7 +93,12 @@ export const uploadNote = async (req, res) => {
     await note.save();
     await note.populate("uploadedBy", "name major email");
 
-    res.status(201).json({ note });
+    const xpResult = await awardXP(req.user.id, "UPLOAD_NOTE");
+
+    res.status(201).json({
+      note,
+      xpAwarded: xpResult.awarded ? xpResult : null,
+    });
   } catch (error) {
     console.error("Error uploading note:", error);
     res.status(500).json({ message: error.message });
@@ -173,7 +179,12 @@ export const trackDownload = async (req, res) => {
 
     await Note.findByIdAndUpdate(noteId, { $inc: { downloadCount: 1 } });
 
-    res.status(200).json({ message: "Download tracked" });
+    const xpResult = await awardXP(req.user.id, "DOWNLOAD_NOTE");
+
+    res.status(200).json({
+      message: "Download tracked",
+      xpAwarded: xpResult.awarded ? xpResult : null,
+    });
   } catch (error) {
     console.error("Error tracking download:", error);
     res.status(500).json({ message: error.message });

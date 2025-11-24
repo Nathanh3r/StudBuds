@@ -2,8 +2,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useGamification } from '../../context/GamificationContext'; 
 
 export default function LogStudySessionModal({ isOpen, onClose, onSessionLogged, classId, token, baseUrl }) {
+  const { handleXPAward } = useGamification(); 
+  
   const [formData, setFormData] = useState({
     duration: '',
     topic: '',
@@ -68,7 +71,13 @@ export default function LogStudySessionModal({ isOpen, onClose, onSessionLogged,
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
+        if (data.xpAwarded) {
+          handleXPAward(data.xpAwarded);
+        }
+        
         setSuccess(true);
         setTimeout(() => {
           onSessionLogged();
@@ -83,7 +92,6 @@ export default function LogStudySessionModal({ isOpen, onClose, onSessionLogged,
           });
         }, 1500);
       } else {
-        const data = await res.json();
         setError(data.message || 'Failed to log study session');
       }
     } catch (error) {

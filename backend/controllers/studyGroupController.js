@@ -2,6 +2,7 @@
 
 import StudyGroup from "../models/studyGroup.js";
 import Class from "../models/class.js";
+import { awardXP } from "../services/xpService.js";
 
 // GET /api/classes/:id/study-groups
 export const getStudyGroupsForClass = async (req, res) => {
@@ -39,18 +40,26 @@ export const createStudyGroup = async (req, res) => {
       name,
       description: description || "",
       createdBy: req.user._id,
-      members: [req.user._id], // creator auto-joins
+      members: [req.user._id], // creator will auto-join sutdy group
       scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       location: location || "",
     });
 
-    // Re-fetch with all the populated fields we care about
+    // award XP for creating a study group
+    const xpResult = await awardXP(req.user._id, "CREATE_STUDY_GROUP", {
+      classId,
+      studyGroupId: group._id,
+    });
+
     const populated = await StudyGroup.findById(group._id)
       .populate("createdBy", "name email major")
       .populate("members", "name email major")
       .populate("class", "code name");
 
-    return res.status(201).json({ group: populated });
+    return res.status(201).json({
+      group: populated,
+      xpAwarded: xpResult || null, 
+    });
   } catch (error) {
     console.error("createStudyGroup error:", error);
     return res.status(500).json({ message: "Failed to create study group" });

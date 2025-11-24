@@ -21,6 +21,10 @@ export const XP_VALUES = {
 
   // Daily actions
   DAILY_LOGIN: 5,
+
+  // Study groups
+  CREATE_STUDY_GROUP: 30, 
+  JOIN_STUDY_GROUP: 10,
 };
 
 /**
@@ -32,6 +36,8 @@ export const DAILY_LIMITS = {
   SEND_MESSAGE: 10, // Max 10 messages per day (20 XP max)
   DOWNLOAD_NOTE: 20, // Max 20 downloads per day (40 XP max)
   CREATE_FLASHCARD: 50, // Max 50 flashcards per day (250 XP max)
+  CREATE_STUDY_GROUP: 3, //Max creating 3 study groups per day
+  JOIN_STUDY_GROUP: 5, //Max joining 5 study groups per day
 };
 
 /**

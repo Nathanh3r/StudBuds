@@ -5,27 +5,27 @@ import { Calendar, User, Clock, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { getSubjectConfig } from '../lib/constants';
 import { getPrimaryMeeting, formatInstructor } from '../lib/courseUtils';
+import { useDarkMode } from '../context/DarkModeContext';
 
 export default function MyCourseCard({ course }) {
-  // Safety check
+  const { darkMode } = useDarkMode();
+
   if (!course) {
     return null;
   }
 
-  // Get subject configuration (white icons for gradient background)
   const subjectConfig = getSubjectConfig(course.department, true);
   const SubjectIcon = subjectConfig.icon;
 
-  // Format meeting info
   const { meeting: meetingDisplay, location: locationDisplay } = getPrimaryMeeting(course);
 
-  // Format instructor
   const instructorName = formatInstructor(course.instructor);
 
   return (
     <Link href={`/classes/${course._id}`}>
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-indigo-200">
+      <div className={`${darkMode ? "bg-[#1e1e1e] border-gray-700 hover:border-indigo-400 shadow-none" : "bg-white border-gray-100 hover:border-indigo-200 shadow-sm"} rounded-xl hover:shadow-xl transition-all duration-300 overflow-hidden group border`}>
         <div className="flex flex-col md:flex-row">
+        
           {/* Left side - Course Icon & Code */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white flex-shrink-0">
             <div className={`w-16 h-16 ${subjectConfig.iconBg} backdrop-blur-sm rounded-2xl flex items-center justify-center mb-3`}>
@@ -42,51 +42,38 @@ export default function MyCourseCard({ course }) {
             )}
           </div>
 
-          {/* Right side - Course Details */}
+          {/* Right side */}
           <div className="flex-1 p-6 min-w-0">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1 min-w-0 pr-4">
-                <h4 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                  {course.name}
-                </h4>
+                <h4 className={`${darkMode ? "text-white group-hover:text-indigo-300" : "text-gray-900 group-hover:text-indigo-600"} text-xl font-bold mb-2 transition-colors`}>{course.name}</h4>
                 {course.description && (
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                    {course.description}
-                  </p>
+                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm line-clamp-2 mb-3`}>{course.description}</p>
                 )}
               </div>
-              
-              {/* View arrow */}
+
+              {/* Arrow */}
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                  <svg 
-                    className="w-5 h-5 text-indigo-600 group-hover:translate-x-1 transition-transform" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M9 5l7 7-7 7" 
-                    />
+                <div className={`${darkMode ? "bg-indigo-900/40 group-hover:bg-indigo-900/60" : "bg-indigo-50 group-hover:bg-indigo-100"} w-10 h-10 rounded-full flex items-center justify-center transition-colors`}>
+                  <svg className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            {/* Course metadata grid */}
+            {/* Metadata grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
               {/* Term */}
               {course.term && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-5 h-5 text-blue-600" strokeWidth={2} />
+                  <div className={`${darkMode ? "bg-blue-900/40" : "bg-blue-50"} w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <Calendar className={`${darkMode ? "text-blue-300" : "text-blue-600"} w-5 h-5`} strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Term</p>
-                    <p className="font-medium text-gray-900 truncate">{course.term}</p>
+                    <p className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}>Term</p>
+                    <p className={`${darkMode ? "text-white" : "text-gray-900"} font-medium truncate`}>{course.term}</p>
                   </div>
                 </div>
               )}
@@ -94,41 +81,41 @@ export default function MyCourseCard({ course }) {
               {/* Instructor */}
               {instructorName && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
-                  <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-purple-600" strokeWidth={2} />
+                  <div className={`${darkMode ? "bg-purple-900/40" : "bg-purple-50"} w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <User className={`${darkMode ? "text-purple-300" : "text-purple-600"} w-5 h-5`} strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Instructor</p>
-                    <p className="font-medium text-gray-900 truncate">{instructorName}</p>
+                    <p className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}>Instructor</p>
+                    <p className={`${darkMode ? "text-white" : "text-gray-900"} font-medium truncate`}>{instructorName}</p>
                   </div>
                 </div>
               )}
 
-              {/* Meeting Time */}
+              {/* Meeting time */}
               {meetingDisplay && (
                 <div className="flex items-center gap-2 text-sm min-w-0">
-                  <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-green-600" strokeWidth={2} />
+                  <div className={`${darkMode ? "bg-green-900/40" : "bg-green-50"} w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <Clock className={`${darkMode ? "text-green-300" : "text-green-600"} w-5 h-5`} strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Schedule</p>
-                    <p className="font-medium text-gray-900 text-xs leading-tight">
-                      {meetingDisplay}
-                    </p>
+                    <p className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-xs`}>Schedule</p>
+                    <p className={`${darkMode ? "text-white" : "text-gray-900"} font-medium text-xs leading-tight`}>{meetingDisplay}</p>
                   </div>
                 </div>
               )}
+
             </div>
 
-            {/* Location if available */}
+            {/* Location */}
             {locationDisplay && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MapPin className="w-5 h-5 text-gray-400" strokeWidth={2} />
+              <div className={`mt-4 pt-4 ${darkMode ? "border-gray-700" : "border-gray-100"} border-t`}>
+                <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                  <MapPin className={`${darkMode ? "text-gray-500" : "text-gray-400"} w-5 h-5`} strokeWidth={2} />
                   <span className="truncate">{locationDisplay}</span>
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </div>

@@ -15,17 +15,8 @@ import LoadingSpinner from '../LoadingSpinner';
 import EmptyState from '../EmptyState';
 import UserAvatar from '../UserAvatar';
 import { MessageCircle } from 'lucide-react';
+import { useDarkMode } from '../../context/DarkModeContext';
 
-/**
- * CourseChat Component
- * 
- * Real-time class chat/discussion feed
- * Features: send, edit, delete messages
- * 
- * @param {string} classId - Class ID
- * @param {string} token - Auth token
- * @param {string} baseUrl - API base URL
- */
 export default function CourseChat({ classId, token, baseUrl }) {
   const { user } = useAuth();
   const { handleXPAward } = useGamification(); 
@@ -38,6 +29,7 @@ export default function CourseChat({ classId, token, baseUrl }) {
   
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const { darkMode } = useDarkMode();
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -47,9 +39,7 @@ export default function CourseChat({ classId, token, baseUrl }) {
     try {
       const data = await createCoursePost(classId, newMessage, token);
       
-      if (data.xpAwarded) {
-        handleXPAward(data.xpAwarded);
-      }
+      if (data.xpAwarded) handleXPAward(data.xpAwarded);
       
       setNewMessage('');
       refetch();
@@ -83,8 +73,6 @@ export default function CourseChat({ classId, token, baseUrl }) {
 
     try {
       await deleteCoursePost(classId, messageId, token);
-      
-      // Optimistic update
       setMessages((prev) => prev.filter((m) => m._id !== messageId));
     } catch (error) {
       console.error('Error deleting message:', error);
@@ -101,20 +89,21 @@ export default function CourseChat({ classId, token, baseUrl }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[600px]">
+      <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"} rounded-xl shadow-sm h-[600px] flex items-center justify-center`}>
         <LoadingSpinner message="Loading chat..." />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[600px]">
+    <div className={`${darkMode ? "bg-gray-900 border-gray-700 shadow-none" : "bg-white border-gray-100 shadow-sm"} rounded-xl flex flex-col h-[600px]`}>
+
       {/* Chat Header */}
-      <div className="p-6 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+      <div className={`p-6 border-b ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+        <h2 className={`text-xl font-bold flex items-center gap-2 ${darkMode ? "text-white" : "text-gray-900"}`}>
           Class Chat
         </h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
           {count} {count === 1 ? 'message' : 'messages'}
         </p>
       </div>
@@ -122,7 +111,7 @@ export default function CourseChat({ classId, token, baseUrl }) {
       {/* Messages Container */}
       <div 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+        className={`flex-1 overflow-y-auto p-4 space-y-4 ${darkMode ? "bg-gray-800" : "bg-gray-50"}`}
       >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -130,22 +119,17 @@ export default function CourseChat({ classId, token, baseUrl }) {
               icon={MessageCircle}
               title="No messages yet"
               description="Start the conversation!"
+              darkMode={darkMode} // optionally handle darkMode inside EmptyState
             />
           </div>
         ) : (
           <>
             {messages.map((message, index) => {
-              const showDateSeparator = index === 0 || 
-                !isSameDay(messages[index - 1].createdAt, message.createdAt);
-
+              const showDateSeparator =
+                index === 0 || !isSameDay(messages[index - 1].createdAt, message.createdAt);
               return (
                 <div key={message._id}>
-                  {/* Date Separator */}
-                  {showDateSeparator && (
-                    <DateSeparator date={message.createdAt} />
-                  )}
-
-                  {/* Message */}
+                  {showDateSeparator && <DateSeparator date={message.createdAt} darkMode={darkMode} />}
                   <MessageBubble
                     message={message}
                     currentUser={user}
@@ -177,22 +161,18 @@ export default function CourseChat({ classId, token, baseUrl }) {
   );
 }
 
-/**
- * DateSeparator - Show date between messages
- */
-function DateSeparator({ date }) {
+/* ----------------------- CHILD COMPONENTS ----------------------- */
+
+function DateSeparator({ date, darkMode }) {
   return (
     <div className="flex items-center justify-center my-4">
-      <div className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">
+      <div className={`${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'} text-xs px-3 py-1 rounded-full`}>
         {formatSessionDate(date)}
       </div>
     </div>
   );
 }
 
-/**
- * MessageBubble - Single message display
- */
 function MessageBubble({ 
   message, 
   currentUser, 
@@ -204,78 +184,48 @@ function MessageBubble({
   onDelete,
   onEditContentChange 
 }) {
+  const { darkMode } = useDarkMode();
   const isOwnMessage = message.author?._id?.toString() === currentUser?._id?.toString();
 
   return (
-    <div className="flex items-start gap-3 hover:bg-white/50 p-2 rounded-lg transition group">
+    <div className={`flex items-start gap-3 p-2 rounded-lg transition group ${darkMode ? 'hover:bg-gray-800/50' : 'hover:bg-white/50'}`}>
       <UserAvatar user={message.author} size="md" />
-      
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1">
-          <span className="font-semibold text-gray-900 text-sm">
-            {message.author?.name || 'Anonymous'}
-          </span>
-          {message.author?.major && (
-            <span className="text-xs text-gray-500">
-              {message.author.major}
-            </span>
-          )}
-          <span className="text-xs text-gray-400">
-            {formatSessionTime(message.createdAt)}
-          </span>
-          
-          {/* Message Actions */}
+          <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>{message.author?.name || 'Anonymous'}</span>
+          {message.author?.major && <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{message.author.major}</span>}
+          <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>{formatSessionTime(message.createdAt)}</span>
+
           {isOwnMessage && (
             <div className="flex gap-2 ml-auto opacity-0 group-hover:opacity-100 transition">
               {!isEditing ? (
                 <>
-                  <button
-                    onClick={() => onEdit(message._id, message.content)}
-                    className="text-xs text-gray-400 hover:text-indigo-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => onDelete(message._id)}
-                    className="text-xs text-gray-400 hover:text-red-600"
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => onEdit(message._id, message.content)} className={`text-xs hover:text-indigo-600 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`}>Edit</button>
+                  <button onClick={() => onDelete(message._id)} className={`text-xs hover:text-red-600 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`}>Delete</button>
                 </>
               ) : (
-                <button
-                  onClick={onCancelEdit}
-                  className="text-xs text-gray-400 hover:text-gray-600"
-                >
-                  Cancel
-                </button>
+                <button onClick={onCancelEdit} className={`text-xs hover:text-gray-600 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`}>Cancel</button>
               )}
             </div>
           )}
         </div>
-        
-        {/* Message Content */}
+
         {isEditing ? (
           <div className="space-y-2">
             <textarea
               value={editContent}
               onChange={(e) => onEditContentChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`w-full px-3 py-2 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border ${
+                darkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+              }`}
               rows="2"
             />
-            <button
-              onClick={() => onSaveEdit(message._id)}
-              className="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700"
-            >
-              Save
-            </button>
+            <button onClick={() => onSaveEdit(message._id)} className="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">Save</button>
           </div>
         ) : (
-          <p className="text-gray-700 text-sm break-words whitespace-pre-wrap">
+          <p className={`text-sm break-words whitespace-pre-wrap ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
             {message.content}
-            {message.editedAt && (
-              <span className="text-xs text-gray-400 ml-2">(edited)</span>
-            )}
+            {message.editedAt && <span className={`text-xs ml-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}> (edited)</span>}
           </p>
         )}
       </div>
@@ -283,12 +233,11 @@ function MessageBubble({
   );
 }
 
-/**
- * MessageInput - Input for sending messages
- */
 function MessageInput({ value, onChange, onSubmit, onKeyPress, sending }) {
+  const { darkMode } = useDarkMode();
+
   return (
-    <div className="p-4 border-t border-gray-200 bg-white">
+    <div className={`p-4 border-t ${darkMode ? "border-gray-700 bg-gray-800/80" : "border-gray-200 bg-white"}`}>
       <form onSubmit={onSubmit} className="flex gap-2 items-center">
         <div className="flex-1 relative">
           <textarea
@@ -296,20 +245,23 @@ function MessageInput({ value, onChange, onSubmit, onKeyPress, sending }) {
             onChange={(e) => onChange(e.target.value)}
             onKeyPress={onKeyPress}
             placeholder="Type a message... (Press Enter to send)"
-            className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+            className={`w-full px-4 py-3 pr-12 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+              ${darkMode ? "bg-gray-800 text-white border-gray-700 placeholder-gray-500" : "bg-white text-gray-900 border-gray-300 placeholder-gray-400"}`}
             rows="1"
-            style={{ minHeight: '44px', maxHeight: '120px' }}
+            style={{ minHeight: "44px", maxHeight: "120px" }}
           />
           {value.length > 0 && (
-            <div className="absolute right-3 bottom-3 text-xs text-gray-400">
+            <div className={`absolute right-3 bottom-3 text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
               {value.length} chars
             </div>
           )}
         </div>
+
         <button
           type="submit"
           disabled={!value.trim() || sending}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 py-2"
+          className={`font-semibold px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 py-2 
+            ${darkMode ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}
         >
           {sending ? (
             <LoadingSpinner size="sm" />
@@ -317,7 +269,7 @@ function MessageInput({ value, onChange, onSubmit, onKeyPress, sending }) {
             <>
               <span>Send</span>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
               </svg>
             </>
           )}

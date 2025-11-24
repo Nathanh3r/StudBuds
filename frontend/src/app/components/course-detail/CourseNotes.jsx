@@ -3,8 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import AddNoteModal from './AddNoteModal';
+import { useDarkMode } from '../../context/DarkModeContext';
 
 export default function CourseNotes({ classId, token, baseUrl }) {
+  const { darkMode } = useDarkMode();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -29,10 +31,9 @@ export default function CourseNotes({ classId, token, baseUrl }) {
 
   const handleNoteUploaded = () => {
     setShowAddModal(false);
-    fetchNotes(); // Refresh the notes list
+    fetchNotes();
   };
 
-  // ADDED: Handle download with proper filename
   const handleDownload = async (note) => {
     try {
       const response = await fetch(note.fileUrl);
@@ -40,13 +41,12 @@ export default function CourseNotes({ classId, token, baseUrl }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = note.fileName; // Use the original filename
+      a.download = note.fileName;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      // Track download
       await fetch(`${baseUrl}/notes/${note._id}/download`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -58,15 +58,16 @@ export default function CourseNotes({ classId, token, baseUrl }) {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className={`rounded-xl shadow-sm border ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-100'}`}>
+
         {/* Header */}
-        <div className="p-6 border-b border-gray-100">
+        <div className={`p-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <h2 className={`text-xl font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Course Notes
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 {notes.length} {notes.length === 1 ? 'note' : 'notes'} shared
               </p>
             </div>
@@ -84,14 +85,14 @@ export default function CourseNotes({ classId, token, baseUrl }) {
         <div className="p-6">
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading notes...</p>
+              <div className={`animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto ${darkMode ? 'border-indigo-400' : 'border-indigo-600'}`}></div>
+              <p className={`mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Loading notes...</p>
             </div>
           ) : notes.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No notes yet</h3>
-              <p className="text-gray-600 mb-6">Be the first to share your notes with the class!</p>
+              <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>No notes yet</h3>
+              <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Be the first to share your notes with the class!</p>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition inline-flex items-center gap-2"
@@ -103,31 +104,21 @@ export default function CourseNotes({ classId, token, baseUrl }) {
           ) : (
             <div className="space-y-3">
               {notes.map((note) => (
-                <div key={note._id} className="border border-gray-200 rounded-lg p-4 hover:border-indigo-200 hover:shadow-sm transition">
+                <div key={note._id} className={`border rounded-lg p-4 transition hover:shadow-sm ${darkMode ? 'border-gray-700 hover:border-indigo-600 bg-gray-800' : 'border-gray-200 hover:border-indigo-200 bg-white'}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 mb-1">{note.title}</h3>
+                      <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{note.title}</h3>
                       {note.description && (
-                        <p className="text-sm text-gray-600 mb-3">{note.description}</p>
+                        <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{note.description}</p>
                       )}
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1.5">
-                          <span>👤</span>
-                          <span className="font-medium">{note.uploadedBy?.name || 'Anonymous'}</span>
-                        </span>
+                      <div className={`flex flex-wrap items-center gap-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <span className="flex items-center gap-1.5"><span>👤</span><span className="font-medium">{note.uploadedBy?.name || 'Anonymous'}</span></span>
                         <span className="text-gray-300">•</span>
-                        <span className="flex items-center gap-1.5">
-                          <span>📅</span>
-                          {new Date(note.createdAt).toLocaleDateString()}
-                        </span>
+                        <span className="flex items-center gap-1.5"><span>📅</span>{new Date(note.createdAt).toLocaleDateString()}</span>
                         <span className="text-gray-300">•</span>
-                        <span className="flex items-center gap-1.5">
-                          <span>⬇️</span>
-                          {note.downloadCount} downloads
-                        </span>
+                        <span className="flex items-center gap-1.5"><span>⬇️</span>{note.downloadCount} downloads</span>
                       </div>
                     </div>
-                    {/* CHANGED: Use button with onClick instead of <a> */}
                     <button
                       onClick={() => handleDownload(note)}
                       className="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition text-sm font-medium"

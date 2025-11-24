@@ -22,9 +22,9 @@ export default function MyCourseCard({ course }) {
   const instructorName = formatInstructor(course.instructor);
 
   return (
-    <Link href={`/classes/${course._id}`}>
-      <div className={`${darkMode ? "bg-[#1e1e1e] border-gray-700 hover:border-indigo-400 shadow-none" : "bg-white border-gray-100 hover:border-indigo-200 shadow-sm"} rounded-xl hover:shadow-xl transition-all duration-300 overflow-hidden group border`}>
-        <div className="flex flex-col md:flex-row">
+    <Link href={`/classes/${course._id}`} className='w-full'>
+      <div className={`${darkMode ? "bg-[#1e1e1e] border-gray-700 hover:border-indigo-400 shadow-none" : "bg-white border-gray-100 hover:border-indigo-200 shadow-sm"} rounded-xl hover:shadow-xl transition-all duration-300 overflow-hidden group border w-full h-[280px]`}>
+        <div className="flex flex-col md:flex-row h-full">
         
           {/* Left side - Course Icon & Code */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white flex-shrink-0">
@@ -43,12 +43,12 @@ export default function MyCourseCard({ course }) {
           </div>
 
           {/* Right side */}
-          <div className="flex-1 p-6 min-w-0">
-            <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 p-6 w-full flex flex-col">
+            <div className="flex items-start justify-between mb-4 w-full flex-shrink-0">
               <div className="flex-1 min-w-0 pr-4">
-                <h4 className={`${darkMode ? "text-white group-hover:text-indigo-300" : "text-gray-900 group-hover:text-indigo-600"} text-xl font-bold mb-2 transition-colors`}>{course.name}</h4>
+                <h4 className={`${darkMode ? "text-white group-hover:text-indigo-300" : "text-gray-900 group-hover:text-indigo-600"} text-xl font-bold mb-2 transition-colors line-clamp-1`}>{course.name}</h4>
                 {course.description && (
-                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm line-clamp-2 mb-3`}>{course.description}</p>
+                  <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm line-clamp-2 mb-0`}>{course.description}</p>
                 )}
               </div>
 
@@ -63,7 +63,7 @@ export default function MyCourseCard({ course }) {
             </div>
 
             {/* Metadata grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
 
               {/* Term */}
               {course.term && (
@@ -106,11 +106,11 @@ export default function MyCourseCard({ course }) {
 
             </div>
 
-            {/* Location */}
+            {/* Location - takes remaining space */}
             {locationDisplay && (
-              <div className={`mt-4 pt-4 ${darkMode ? "border-gray-700" : "border-gray-100"} border-t`}>
+              <div className={`mt-auto pt-4 ${darkMode ? "border-gray-700" : "border-gray-100"} border-t flex-shrink-0`}>
                 <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                  <MapPin className={`${darkMode ? "text-gray-500" : "text-gray-400"} w-5 h-5`} strokeWidth={2} />
+                  <MapPin className={`${darkMode ? "text-gray-500" : "text-gray-400"} w-5 h-5 flex-shrink-0`} strokeWidth={2} />
                   <span className="truncate">{locationDisplay}</span>
                 </div>
               </div>

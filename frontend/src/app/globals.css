@@ -204,3 +204,196 @@ body {
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
+@keyframes scrollIcons {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.icon-scroll {
+  animation: scrollIcons 30s linear infinite;
+}
+
+@keyframes float1 {
+
+  0%,
+  100% {
+    transform: translate(0px, 0px);
+  }
+
+  25% {
+    transform: translate(100px, -60px);
+  }
+
+  50% {
+    transform: translate(150px, 0px);
+  }
+
+  75% {
+    transform: translate(100px, 60px);
+  }
+}
+
+@keyframes float2 {
+
+  0%,
+  100% {
+    transform: translate(0px, 0px);
+  }
+
+  25% {
+    transform: translate(-100px, 60px);
+  }
+
+  50% {
+    transform: translate(-150px, 0px);
+  }
+
+  75% {
+    transform: translate(-100px, -60px);
+  }
+}
+
+@keyframes gradientShift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Floating animation for university logos */
+@keyframes floatLogo {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animated-gradient-bg {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #6366f1, #8b5cf6);
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+}
+
+.splotch-1 {
+  animation: float1 12s ease-in-out infinite;
+}
+
+.splotch-2 {
+  animation: float2 15s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.splotch-3 {
+  animation: float1 12s ease-in-out infinite;
+  animation-delay: 4s;
+}
+
+.splotch-4 {
+  animation: float2 10s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.splotch-5 {
+  animation: float1 15s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.splotch-6 {
+  animation: float2 12s ease-in-out infinite;
+  animation-delay: 5s;
+}
+
+.splotch-7 {
+  animation: float1 10s ease-in-out infinite;
+  animation-delay: 2.5s;
+}
+
+/* University logo animations with different delays */
+.logo-float-1 {
+  animation: floatLogo 12s ease-in-out infinite;
+}
+
+.logo-float-2 {
+  animation: floatLogo 15s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.logo-float-3 {
+  animation: floatLogo 12s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.logo-float-4 {
+  animation: floatLogo 15s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.logo-float-5 {
+  animation: floatLogo 12s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.logo-float-6 {
+  animation: floatLogo 15s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.logo-float-7 {
+  animation: floatLogo 12s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+@keyframes horizontalGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes rotateIcons {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.animate-horizontal-gradient {
+  background-size: 200% 100%;
+  animation: horizontalGradient 3s ease infinite;
+}
+
+.icon-carousel-container {
+  transform-style: preserve-3d;
+  animation: rotateIcons 20s linear infinite;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+

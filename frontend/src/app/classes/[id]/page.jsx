@@ -18,6 +18,7 @@ import CourseChat from '../../components/course-detail/CourseChat';
 import CoursePeople from '../../components/course-detail/CoursePeople';
 import StudyGroups from '../../components/course-detail/StudyGroups';
 import Link from 'next/link';
+import { LogOut } from 'lucide-react';
   
 export default function CourseDetailPage() {
   const { token, user, loading: authLoading } = useAuth();
@@ -172,15 +173,14 @@ export default function CourseDetailPage() {
 
   const isCurrentUserMember = classData.isCurrentUserMember;
 
-  //added leave class button
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Sidebar />
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-          {/* Course Header + Leave Button */}
-          <div className="flex items-start justify-between gap-4 mb-4">
+          {/* Course Header */}
+          <div className="mb-4">
             <CourseHeader
               code={classData.code}
               name={classData.name}
@@ -188,17 +188,7 @@ export default function CourseDetailPage() {
               instructor={classData.instructor?.name}
               studentCount={classData.memberCount}
             />
-            {isCurrentUserMember && (
-              <button
-                onClick={handleLeaveClass}
-                className="h-10 px-4 rounded-lg border border-red-500 text-red-600 font-medium text-sm
-                           hover:bg-red-50 transition whitespace-nowrap"
-              >
-                Leave Class
-              </button>
-            )}
           </div>
-
 
           {/* Join Prompt or Course Content */}
           {!isCurrentUserMember ? (
@@ -208,11 +198,11 @@ export default function CourseDetailPage() {
             />
           ) : (
             <>
-              {/* Tabs */}
-              <div className={`mb-6 border-b overflow-x-auto ${
+              {/* Tabs with Leave Button */}
+              <div className={`mb-6 border-b flex items-center justify-between ${
                 darkMode ? 'border-gray-700' : 'border-gray-200'
               }`}>
-                <div className="flex gap-4 sm:gap-8 min-w-max sm:min-w-0">
+                <div className="flex gap-4 sm:gap-8 overflow-x-auto flex-1">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
@@ -232,6 +222,18 @@ export default function CourseDetailPage() {
                     </button>
                   ))}
                 </div>
+
+                {/* Leave Class Button */}
+                <button
+                  onClick={handleLeaveClass}
+                  className={`ml-4 flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    darkMode 
+                      ? 'text-red-400 hover:bg-red-900/20 hover:text-red-300' 
+                      : 'text-red-600 hover:bg-red-50'
+                  }`}
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Tab Content */}

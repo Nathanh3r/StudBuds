@@ -102,6 +102,32 @@ export default function CourseDetailPage() {
     }
   };
 
+  const handleLeaveClass = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to leave this class? You can always rejoin later from Discover.'
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${baseUrl}/classes/${classId}/leave`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push('/discover'); 
+      } else {
+        setError(data.message || 'Failed to leave class');
+      }
+    } catch (err) {
+      console.error('Leave class error:', err);
+      setError('Failed to leave class');
+    }
+  };
+
+
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'chat', label: 'Chat' },
@@ -146,20 +172,33 @@ export default function CourseDetailPage() {
 
   const isCurrentUserMember = classData.isCurrentUserMember;
 
+  //added leave class button
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Sidebar />
-
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Course Header */}
-          <CourseHeader
-            code={classData.code}
-            name={classData.name}
-            term={classData.term}
-            instructor={classData.instructor?.name}
-            studentCount={classData.memberCount}
-          />
+
+          {/* Course Header + Leave Button */}
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <CourseHeader
+              code={classData.code}
+              name={classData.name}
+              term={classData.term}
+              instructor={classData.instructor?.name}
+              studentCount={classData.memberCount}
+            />
+            {isCurrentUserMember && (
+              <button
+                onClick={handleLeaveClass}
+                className="h-10 px-4 rounded-lg border border-red-500 text-red-600 font-medium text-sm
+                           hover:bg-red-50 transition whitespace-nowrap"
+              >
+                Leave Class
+              </button>
+            )}
+          </div>
+
 
           {/* Join Prompt or Course Content */}
           {!isCurrentUserMember ? (

@@ -1,41 +1,39 @@
-// src/app/lib/api.js
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 export const api = {
   // Test connection
   async testConnection() {
-    const res = await fetch(`${API_URL}/health`);
-    return res.json();
+    const response = await fetch(`${API_URL}/health`);
+    return response.json();
   },
 
-  // Register
+  // Auth endpoints
   async register(userData) {
-    const res = await fetch(`${API_URL}/users/register`, {
+    const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
-    return res.json();
+    return response.json();
   },
 
-  // Login
   async login(credentials) {
-    const res = await fetch(`${API_URL}/users/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
     });
-    return res.json();
+    return response.json();
   },
 
-  // Get current user (protected)
+  // Protected endpoint example
   async getCurrentUser(token) {
-    const res = await fetch(`${API_URL}/users/me`, {
+    const response = await fetch(`${API_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
-    return res.json();
+    return response.json();
   },
 };

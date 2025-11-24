@@ -116,7 +116,7 @@ function StatsSection() {
         
         {/* Stanford - bottom middle */}
         <img 
-          className="logo-float-6 absolute bottom-10 left-1/3 w-16 h-16 md:w-28 md:h-28 hover:scale-110 transition-transform cursor-pointer" 
+          className="logo-float-6 absolute bottom-10 left-140 w-16 h-16 md:w-28 md:h-28 hover:scale-110 transition-transform cursor-pointer" 
           src="/Stanford.svg" 
           alt="Stanford"
         />
@@ -149,15 +149,7 @@ function StatsSection() {
     </section>
   );
 }
-/* MISSION SECTION
-  Explaining the purpose with horizontal scrolling icons
-*/
-/* MISSION SECTION
-  Explaining the purpose with horizontal scrolling icons
-*/
-/* MISSION SECTION
-  Explaining the purpose with icons
-*/
+
 function Mission() {
   const features = [
     { icon: Users, title: "Connect", color: "text-blue-600", bg: "bg-blue-50" },

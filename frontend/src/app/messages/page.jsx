@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, MessageCircle, AlertCircle } from 'lucide-react';
+import Link from "next/link"; //allows to go to the game pages
 
 // Context & Hooks
 import { useAuth } from '../context/AuthContext';
@@ -28,7 +29,7 @@ export default function MessagesPage() {
   // Conversations data
   const { conversations, loading, backendError, refetch } = useConversations(token);
 
-  // Messages state
+  // State
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -37,7 +38,7 @@ export default function MessagesPage() {
   const [newChatUser, setNewChatUser] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Handle URL params for starting new conversation
+  // Handle URL params
   useEffect(() => {
     if (typeof window !== 'undefined' && token) {
       const params = new URLSearchParams(window.location.search);
@@ -46,7 +47,7 @@ export default function MessagesPage() {
     }
   }, [token]);
 
-  // Load messages when conversation is selected
+  // Load messages when selecting a conversation
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.user._id);
@@ -54,7 +55,6 @@ export default function MessagesPage() {
     }
   }, [selectedConversation]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -67,9 +67,9 @@ export default function MessagesPage() {
     try {
       const data = await fetchUserById(userId, token);
       const targetUser = data.user;
-      
+
       const existingConvo = conversations.find(c => c.user._id === userId);
-      
+
       if (existingConvo) {
         setSelectedConversation(existingConvo);
       } else {
@@ -81,10 +81,9 @@ export default function MessagesPage() {
         setNewChatUser(newConvo);
         setSelectedConversation(newConvo);
       }
-      
+
       window.history.replaceState({}, '', '/messages');
     } catch (err) {
-      console.error('Error starting new conversation:', err);
       setError('Failed to start conversation');
     }
   };
@@ -95,7 +94,6 @@ export default function MessagesPage() {
       setMessages(data.messages || []);
       setError('');
     } catch (err) {
-      console.error('Error fetching messages:', err);
       setError(err.message || 'Failed to load messages');
     }
   };
@@ -104,9 +102,7 @@ export default function MessagesPage() {
     try {
       await markMessagesAsRead(userId, token);
       await refetch();
-    } catch (err) {
-      console.error('Error marking as read:', err);
-    }
+    } catch (err) {}
   };
 
   const handleSendMessage = async (e) => {
@@ -117,15 +113,14 @@ export default function MessagesPage() {
     try {
       await sendMessage(selectedConversation.user._id, newMessage, token);
       setNewMessage('');
-      
+
       if (newChatUser) {
         setNewChatUser(null);
       }
-      
+
       await loadMessages(selectedConversation.user._id);
       await refetch();
     } catch (err) {
-      console.error('Error sending message:', err);
       setError(err.message || 'Failed to send message');
     } finally {
       setSendingMessage(false);
@@ -143,19 +138,16 @@ export default function MessagesPage() {
     else return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-const [initialLoad, setInitialLoad] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-useEffect(() => {
-  if (!authLoading && !loading) {
-    setInitialLoad(false);
-  }
-}, [authLoading, loading]);
+  useEffect(() => {
+    if (!authLoading && !loading) {
+      setInitialLoad(false);
+    }
+  }, [authLoading, loading]);
 
-if (initialLoad) {
-  return <LoadingScreen />;
-}
+  if (initialLoad) return <LoadingScreen />;
 
-  // Redirect if not authenticated
   if (!user) {
     router.push('/login');
     return null;
@@ -163,21 +155,38 @@ if (initialLoad) {
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+
       <Sidebar />
-      
+
       <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
         <div className="h-screen flex flex-col">
-          {/* Page Header */}
+
+          {/* HEADER */}
           <div className={`px-8 pt-8 border-b-2 ${
             darkMode ? 'border-gray-800' : 'border-gray-50'
           }`}>
-            <PageHeader
-              title="Messages"
-              subtitle="Chat with your classmates"
-            />
+            <PageHeader title="Messages" subtitle="Chat with your classmates" />
           </div>
 
-          {/* Backend Error Warning */}
+          {/* game buttons with links to games  */}
+          <div className="px-8 pt-4 flex gap-3">
+            <Link
+              href="/pong"
+              className="text-xs px-4 py-2 rounded-full border border-emerald-500 text-emerald-400 hover:bg-emerald-600/20 transition"
+            >
+              🎮 Play Pong
+            </Link>
+
+            {/* term game */}
+            <Link
+              href="/terms_game"
+              className="text-xs px-4 py-2 rounded-full border border-indigo-500 text-indigo-400 hover:bg-indigo-600/20 transition"
+            >
+              📘 Practice Terms
+            </Link>
+          </div>
+
+          {/* BACKEND ERROR */}
           {backendError && (
             <div className={`border-b-2 px-8 py-4 ${
               darkMode 
@@ -189,15 +198,15 @@ if (initialLoad) {
               }`}>
                 <AlertCircle className="w-5 h-5" strokeWidth={2} />
                 <p className="text-sm font-medium">
-                  Unable to connect to messaging service. Please make sure the backend is running on port 4000.
+                  Unable to connect to messaging service. Please make sure the backend is running.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Messages Layout */}
+          {/* LAYOUT */}
           <div className="flex-1 flex overflow-hidden">
-            {/* Conversations List */}
+
             <ConversationsList
               conversations={conversations}
               selectedConversation={selectedConversation}
@@ -207,7 +216,6 @@ if (initialLoad) {
               formatTime={formatTime}
             />
 
-            {/* Chat Area */}
             <ChatArea
               selectedConversation={selectedConversation}
               messages={messages}
@@ -223,7 +231,7 @@ if (initialLoad) {
             />
           </div>
 
-          {/* Error Message */}
+          {/* ERRORS */}
           {error && (
             <div className={`fixed bottom-8 right-8 border-2 px-6 py-4 rounded-2xl shadow-xl max-w-md z-50 ${
               darkMode
@@ -231,14 +239,12 @@ if (initialLoad) {
                 : 'bg-red-50 border-red-200 text-red-700'
             }`}>
               <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5" strokeWidth={2} />
+                <AlertCircle className="w-5 h-5" />
                 <span className="font-medium">{error}</span>
                 <button
                   onClick={() => setError('')}
                   className={`ml-2 font-bold ${
-                    darkMode
-                      ? 'text-red-200 hover:text-red-100'
-                      : 'text-red-900 hover:text-red-700'
+                    darkMode ? 'text-red-200' : 'text-red-900'
                   }`}
                 >
                   ✕
@@ -246,13 +252,15 @@ if (initialLoad) {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>
   );
 }
 
-// Conversations List Component
+/* SUB COMPONENTS */
+
 function ConversationsList({ conversations, selectedConversation, onSelectConversation, darkMode, router, formatTime }) {
   return (
     <div className={`w-full sm:w-80 lg:w-96 border-r-2 flex flex-col overflow-hidden ${
@@ -271,18 +279,18 @@ function ConversationsList({ conversations, selectedConversation, onSelectConver
           <div className="p-12 text-center">
             <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-gray-600' : 'text-gray-300'
-            }`} strokeWidth={1.5} />
+            }`} />
             <h3 className={`text-lg font-semibold mb-2 ${
               darkMode ? 'text-white' : 'text-gray-900'
             }`}>No messages yet</h3>
-            <p className={`text-sm mb-6 max-w-xs mx-auto ${
+            <p className={`text-sm mb-6 ${
               darkMode ? 'text-gray-400' : 'text-gray-500'
             }`}>
               Start a conversation with your friends!
             </p>
             <button
               onClick={() => router.push('/friends')}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-6 py-3 rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium px-6 py-3 rounded-full hover:shadow-lg"
             >
               Go to Friends
             </button>
@@ -306,7 +314,7 @@ function ConversationsList({ conversations, selectedConversation, onSelectConver
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center">
                     <span className="text-white font-semibold text-lg">
                       {conversation.user.name.charAt(0).toUpperCase()}
                     </span>
@@ -319,7 +327,7 @@ function ConversationsList({ conversations, selectedConversation, onSelectConver
                         {conversation.user.name}
                       </h3>
                       {conversation.lastMessage && (
-                        <span className={`text-xs ml-2 flex-shrink-0 font-medium ${
+                        <span className={`text-xs ml-2 ${
                           darkMode ? 'text-gray-500' : 'text-gray-400'
                         }`}>
                           {formatTime(conversation.lastMessage.createdAt)}
@@ -339,7 +347,7 @@ function ConversationsList({ conversations, selectedConversation, onSelectConver
                       </p>
                     )}
                     {conversation.unreadCount > 0 && (
-                      <span className="inline-block mt-2 bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                      <span className="inline-block mt-2 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full">
                         {conversation.unreadCount} new
                       </span>
                     )}
@@ -354,7 +362,6 @@ function ConversationsList({ conversations, selectedConversation, onSelectConver
   );
 }
 
-// Chat Area Component
 function ChatArea({ 
   selectedConversation, 
   messages, 
@@ -370,14 +377,12 @@ function ChatArea({
 }) {
   if (!selectedConversation) {
     return (
-      <div className={`flex-1 flex flex-col ${
-        darkMode ? 'bg-gray-900' : 'bg-white'
-      }`}>
+      <div className={`flex-1 flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <MessageCircle className={`w-20 h-20 mx-auto mb-6 ${
               darkMode ? 'text-gray-600' : 'text-gray-300'
-            }`} strokeWidth={1.5} />
+            }`} />
             <h3 className={`text-2xl font-semibold mb-3 ${
               darkMode ? 'text-white' : 'text-gray-900'
             }`}>
@@ -395,15 +400,13 @@ function ChatArea({
   }
 
   return (
-    <div className={`flex-1 flex flex-col ${
-      darkMode ? 'bg-gray-900' : 'bg-white'
-    }`}>
-      {/* Chat Header */}
+    <div className={`flex-1 flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+
       <div className={`border-b-2 px-8 py-6 ${
         darkMode ? 'border-gray-800' : 'border-gray-50'
       }`}>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center">
             <span className="text-white font-semibold text-lg">
               {selectedConversation.user.name.charAt(0).toUpperCase()}
             </span>
@@ -423,14 +426,13 @@ function ChatArea({
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-8 space-y-4">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <MessageCircle className={`w-16 h-16 mx-auto mb-4 ${
                 darkMode ? 'text-gray-600' : 'text-gray-300'
-              }`} strokeWidth={1.5} />
+              }`} />
               <p className={`text-lg ${
                 darkMode ? 'text-gray-400' : 'text-gray-500'
               }`}>
@@ -453,22 +455,18 @@ function ChatArea({
                   <div
                     className={`max-w-xs lg:max-w-md xl:max-w-lg rounded-3xl px-5 py-3 ${
                       isCurrentUser
-                        ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                        ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white'
                         : darkMode
                         ? 'bg-gray-800 text-white'
                         : 'bg-gray-50 text-gray-900'
                     }`}
                   >
-                    <p className="text-sm break-words leading-relaxed">{message.content}</p>
-                    <p
-                      className={`text-xs mt-2 font-medium ${
-                        isCurrentUser 
-                          ? 'text-indigo-100' 
-                          : darkMode
-                          ? 'text-gray-500'
-                          : 'text-gray-400'
-                      }`}
-                    >
+                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <p className={`text-xs mt-2 ${
+                      isCurrentUser 
+                        ? 'text-indigo-100' 
+                        : darkMode ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
                       {formatTime(message.createdAt)}
                     </p>
                   </div>
@@ -480,7 +478,6 @@ function ChatArea({
         )}
       </div>
 
-      {/* Message Input */}
       <div className={`border-t-2 p-6 ${
         darkMode ? 'border-gray-800' : 'border-gray-50'
       }`}>
@@ -490,23 +487,24 @@ function ChatArea({
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className={`flex-1 px-5 py-4 border-2 rounded-2xl focus:outline-none transition ${
+            className={`flex-1 px-5 py-4 border-2 rounded-2xl ${
               darkMode
-                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500'
-                : 'bg-white border-gray-100 text-gray-900 placeholder-gray-400 focus:border-indigo-300'
+                ? 'bg-gray-800 border-gray-700 text-white'
+                : 'bg-white border-gray-100 text-gray-900'
             }`}
-            disabled={sendingMessage}
           />
+
           <button
             type="submit"
             disabled={sendingMessage || !newMessage.trim()}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-2xl transition disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-indigo-500/30 flex items-center gap-2"
+            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold px-8 py-4 rounded-2xl hover:shadow-lg"
           >
-            <Send className="w-5 h-5" strokeWidth={2} />
+            <Send className="w-5 h-5 inline-block mr-2" />
             {sendingMessage ? 'Sending...' : 'Send'}
           </button>
         </form>
       </div>
+
     </div>
   );
 }

@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import AddNoteModal from './AddNoteModal';
 import { useDarkMode } from '../../context/DarkModeContext';
+import { Plus, FileText, User, Calendar, Download } from 'lucide-react';
 
 export default function CourseNotes({ classId, token, baseUrl }) {
   const { darkMode } = useDarkMode();
@@ -75,7 +76,7 @@ export default function CourseNotes({ classId, token, baseUrl }) {
               onClick={() => setShowAddModal(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
             >
-              <span className="text-xl">+</span>
+              <Plus className="w-5 h-5" strokeWidth={2} />
               Add Note
             </button>
           </div>
@@ -90,14 +91,16 @@ export default function CourseNotes({ classId, token, baseUrl }) {
             </div>
           ) : notes.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">📝</div>
+              <div className="mb-4">
+                <FileText className={`w-16 h-16 mx-auto ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={1.5} />
+              </div>
               <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>No notes yet</h3>
               <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Be the first to share your notes with the class!</p>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition inline-flex items-center gap-2"
               >
-                <span className="text-xl">+</span>
+                <Plus className="w-5 h-5" strokeWidth={2} />
                 Upload First Note
               </button>
             </div>
@@ -112,11 +115,20 @@ export default function CourseNotes({ classId, token, baseUrl }) {
                         <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{note.description}</p>
                       )}
                       <div className={`flex flex-wrap items-center gap-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        <span className="flex items-center gap-1.5"><span>👤</span><span className="font-medium">{note.uploadedBy?.name || 'Anonymous'}</span></span>
-                        <span className="text-gray-300">•</span>
-                        <span className="flex items-center gap-1.5"><span>📅</span>{new Date(note.createdAt).toLocaleDateString()}</span>
-                        <span className="text-gray-300">•</span>
-                        <span className="flex items-center gap-1.5"><span>⬇️</span>{note.downloadCount} downloads</span>
+                        <span className="flex items-center gap-1.5">
+                          <User className={`w-4 h-4 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} strokeWidth={2} />
+                          <span className="font-medium">{note.uploadedBy?.name || 'Anonymous'}</span>
+                        </span>
+                        <span className={darkMode ? 'text-gray-600' : 'text-gray-300'}>•</span>
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} strokeWidth={2} />
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className={darkMode ? 'text-gray-600' : 'text-gray-300'}>•</span>
+                        <span className="flex items-center gap-1.5">
+                          <Download className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} strokeWidth={2} />
+                          {note.downloadCount} downloads
+                        </span>
                       </div>
                     </div>
                     <button

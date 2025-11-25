@@ -21,7 +21,9 @@ import {
   Flame, 
   Clock, 
   Trophy, 
-  Star 
+  Star,
+  MapPin,
+  Calendar
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -176,16 +178,18 @@ export default function DashboardPage() {
               return (
                 <div
                   key={group._id}
-                  className={`rounded-xl shadow-sm p-5 hover:shadow-md transition ${
-                    darkMode ? 'bg-gray-800' : 'bg-white'
-                  }`}
+                  className={`group rounded-3xl p-6 flex flex-col transition-all duration-300 border-2 ${
+                    darkMode 
+                      ? 'bg-gray-800 border-gray-700 hover:border-indigo-500' 
+                      : 'bg-white border-gray-100 hover:border-indigo-200'
+                  } hover:shadow-xl hover:shadow-indigo-500/10`}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {group.name}
                     </h3>
                     {classLabel && (
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         darkMode 
                           ? 'bg-indigo-900/50 text-indigo-300' 
                           : 'bg-indigo-100 text-indigo-700'
@@ -195,31 +199,40 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <div className="space-y-1.5 mb-4">
-                    <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      <span className="text-base">🕐</span>
+                  <div className="space-y-3 mb-4">
+                    <div className={`flex items-center gap-2.5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <Calendar className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} strokeWidth={2} />
                       <span className="text-sm">{when}</span>
                     </div>
-                    <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      <span className="text-base">📍</span>
+                    <div className={`flex items-center gap-2.5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <MapPin className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} strokeWidth={2} />
                       <span className="text-sm">{location}</span>
                     </div>
-                    <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      <span className="text-base">👥</span>
-                      <span className="text-sm">{attendeeCount} students attending</span>
+                    <div className={`flex items-center gap-2.5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <Users className={`w-4 h-4 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} strokeWidth={2} />
+                      <span className="text-sm font-medium">{attendeeCount}</span>
                     </div>
                   </div>
 
-                  <Link
-                    href={
-                      group.class && group.class._id
-                        ? `/classes/${group.class._id}?tab=study-groups`
-                        : '/dashboard'
-                    }
-                    className="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition text-sm"
-                  >
-                    View Session
-                  </Link>
+                  <div className="flex-1"></div>
+
+                  <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                    <Link
+                      href={
+                        group.class && group.class._id
+                          ? `/classes/${group.class._id}?tab=study-groups`
+                          : '/dashboard'
+                      }
+                      className={`flex items-center justify-center gap-1 text-sm font-semibold transition-colors ${
+                        darkMode 
+                          ? 'text-indigo-400 hover:text-indigo-300' 
+                          : 'text-indigo-600 hover:text-indigo-700'
+                      }`}
+                    >
+                      View Session
+                      <ChevronRight className="w-4 h-4" strokeWidth={2} />
+                    </Link>
+                  </div>
                 </div>
               );
             })}

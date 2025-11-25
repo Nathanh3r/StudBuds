@@ -1,5 +1,7 @@
 'use client';
 
+import { BookOpen } from 'lucide-react';
+
 export default function LoadingScreen() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center">
@@ -11,7 +13,7 @@ export default function LoadingScreen() {
           
           {/* Inner icon */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-5xl animate-pulse">📚</span>
+            <BookOpen className="w-12 h-12 text-white animate-pulse" strokeWidth={2} />
           </div>
         </div>
 

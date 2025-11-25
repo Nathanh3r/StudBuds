@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, MessageCircle, AlertCircle } from 'lucide-react';
-import Link from "next/link"; //allows to go to the game pages
 
 // Context & Hooks
 import { useAuth } from '../context/AuthContext';
@@ -166,24 +165,6 @@ export default function MessagesPage() {
             darkMode ? 'border-gray-800' : 'border-gray-50'
           }`}>
             <PageHeader title="Messages" subtitle="Chat with your classmates" />
-          </div>
-
-          {/* game buttons with links to games  */}
-          <div className="px-8 pt-4 flex gap-3">
-            <Link
-              href="/pong"
-              className="text-xs px-4 py-2 rounded-full border border-emerald-500 text-emerald-400 hover:bg-emerald-600/20 transition"
-            >
-              🎮 Play Pong
-            </Link>
-
-            {/* term game */}
-            <Link
-              href="/terms_game"
-              className="text-xs px-4 py-2 rounded-full border border-indigo-500 text-indigo-400 hover:bg-indigo-600/20 transition"
-            >
-              📘 Practice Terms
-            </Link>
           </div>
 
           {/* BACKEND ERROR */}

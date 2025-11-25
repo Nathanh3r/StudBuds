@@ -58,33 +58,35 @@ export default function SignupPage() {
     <div className="min-h-screen bg-slate-50 flex"> {/* grey background */}
 
       {/* on the left Gradient background and picture */}
-      <div className="hidden md:flex flex-1 bg-gradient-to-br from-purple-700 via-indigo-600 to-pink-500 justify-center items-center relative">
+      <div className="hidden md:flex flex-1 relative overflow-hidden">
+        {/* Background gradient image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/gradient.png')" }}
+        />
         
-        {/* glow blobs layered under the pictures */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -left-10 w-72 h-72 bg-indigo-400/40 blur-3xl rounded-full" /> {/* Top-left glow */}
-          <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-400/40 blur-3xl rounded-full" /> {/* Bottom-right glow */}
-        </div>
+        {/* Content overlay */}
+        <div className="relative z-10 w-full flex justify-center items-center">
+          {/* on the left we got  picture logo and text */}
+          <div className="flex flex-col items-center text-center space-y-6 max-w-sm">
 
-        {/* on the left we got  picture logo and text */}
-        <div className="relative z-10 flex flex-col items-center text-center space-y-6 max-w-sm">
+            <h1 className="text-3xl font-semibold text-white">StudBuds</h1> {/* name */}
 
-          <h1 className="text-3xl font-semibold text-white">StudBuds</h1> {/* name */}
+            <img
+              src="/peeps.svg" // Loads signup pic
+              alt="Signup pic"
+              className="w-72 h-72 object-contain drop-shadow-xl" // Large clean pic
+            />
 
-          <img
-            src="/peeps.svg" // Loads signup pic
-            alt="Signup pic"
-            className="w-72 h-72 object-contain drop-shadow-xl" // Large clean pic
-          />
-
-          {/* Text block under image */}
-          <div className="space-y-2 text-white">
-            <p className="text-lg font-semibold">
-              Join a community of focused learners {/* Tagline */}
-            </p>
-            <p className="text-xs text-indigo-100 max-w-xs mx-auto">
-              Match with study partners, share notes, and build better habits. {/* Description */}
-            </p>
+            {/* Text block under image */}
+            <div className="space-y-2 text-white">
+              <p className="text-lg font-semibold">
+                Join a community of focused learners {/* Tagline */}
+              </p>
+              <p className="text-xs text-indigo-100 max-w-xs mx-auto">
+                Match with study partners, share notes, and build better habits. {/* Description */}
+              </p>
+            </div>
           </div>
         </div>
       </div>

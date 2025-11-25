@@ -17,7 +17,7 @@ import LoadingSpinner from '../LoadingSpinner';
 import EmptyState from '../EmptyState';
 import UserAvatar from '../UserAvatar';
 import LogStudySessionModal from './LogStudySessionModal';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Plus, Clock, Calendar, Flame, Lightbulb, Target, MapPin, Heart } from 'lucide-react';
 import { useDarkMode } from '../../context/DarkModeContext';
 
 export default function StudyFeed({ classId, token, baseUrl }) {
@@ -116,7 +116,7 @@ export default function StudyFeed({ classId, token, baseUrl }) {
               onClick={() => setShowLogModal(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
             >
-              <span className="text-xl">+</span>
+              <Plus className="w-5 h-5" strokeWidth={2} />
               <span className="hidden sm:inline">Log Session</span>
               <span className="sm:hidden">Log</span>
             </button>
@@ -175,7 +175,7 @@ function UserStatsPanel({ stats, darkMode }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard value={stats.totalHours} label="Total Hours" darkMode={darkMode} />
         <StatCard value={stats.totalSessions} label="Sessions" darkMode={darkMode} />
-        <StatCard value={stats.currentStreak} label="Day Streak 🔥" darkMode={darkMode} />
+        <StatCard value={stats.currentStreak} label="Day Streak" icon={Flame} darkMode={darkMode} />
         <StatCard value={stats.averageSessionMinutes} label="Avg Minutes" darkMode={darkMode} />
       </div>
     </div>
@@ -183,10 +183,13 @@ function UserStatsPanel({ stats, darkMode }) {
 }
 
 /* StatCard */
-function StatCard({ value, label, darkMode }) {
+function StatCard({ value, label, icon: Icon, darkMode }) {
   return (
     <div className={`rounded-lg p-3 border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-indigo-100 text-gray-900'}`}>
-      <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{value}</div>
+      <div className="flex items-center gap-2">
+        <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{value}</div>
+        {Icon && <Icon className={`w-5 h-5 ${darkMode ? 'text-orange-400' : 'text-orange-600'}`} strokeWidth={2} />}
+      </div>
       <div className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{label}</div>
     </div>
   );
@@ -198,91 +201,162 @@ function StudySessionCard({ session, currentUser, onLike, onDelete, darkMode }) 
   const hasLiked = session.likes?.includes(currentUser?._id);
 
   return (
-    <div className={`rounded-lg p-4 transition ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-indigo-600 hover:shadow-sm' : 'bg-white border border-gray-200 hover:border-indigo-200 hover:shadow-sm'}`}>
+    <div className={`rounded-xl p-6 transition-all duration-300 border ${
+      darkMode 
+        ? 'bg-gray-800 border-gray-700 hover:border-indigo-500' 
+        : 'bg-white border-gray-200 hover:border-indigo-200 hover:shadow-lg'
+    }`}>
 
-      <div className="flex items-start justify-between mb-3">
+      {/* Header - User Info */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 flex-1">
           <UserAvatar user={session.userId} size="md" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className={darkMode ? 'font-semibold text-white' : 'font-semibold text-gray-900'}>
+              <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 {session.userId?.name || 'Anonymous'}
               </span>
               {session.userId?.major && (
                 <>
-                  <span className="text-gray-300">•</span>
+                  <span className={darkMode ? 'text-gray-600' : 'text-gray-300'}>•</span>
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{session.userId.major}</span>
                 </>
               )}
             </div>
-            <div className={`flex flex-wrap items-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              <span className="flex items-center gap-1">⏱️ {formatDuration(session.duration)}</span>
-              <span className="text-gray-300">•</span>
-              <span className="flex items-center gap-1">📅 {formatSessionDate(session.createdAt)}</span>
-              <span className="text-gray-300">•</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getDifficultyColor(session.difficulty)}`}>
-                {session.difficulty}
-              </span>
-            </div>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {formatSessionDate(session.createdAt)}
+            </p>
           </div>
         </div>
 
         {isOwnSession && (
           <button
             onClick={() => onDelete(session._id)}
-            className={`text-sm transition ${darkMode ? 'text-gray-400 hover:text-red-600' : 'text-gray-400 hover:text-red-600'}`}
+            className={`text-sm font-medium transition ${
+              darkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-400 hover:text-red-600'
+            }`}
           >
             Delete
           </button>
         )}
       </div>
 
-      <div className="ml-13 space-y-2">
-        <h4 className={`flex items-center gap-2 font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          📚 {session.topic}
+      {/* Topic */}
+      <div className="mb-4">
+        <h4 className={`text-lg font-semibold flex items-center gap-2 mb-2 ${
+          darkMode ? 'text-white' : 'text-gray-900'
+        }`}>
+          <BookOpen className={`w-5 h-5 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={2} />
+          {session.topic}
         </h4>
 
+        {/* Subtopics */}
         {session.subtopics?.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {session.subtopics.map((subtopic, idx) => (
-              <span key={idx} className={`text-xs px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+              <span 
+                key={idx} 
+                className={`text-xs px-2.5 py-1 rounded-full ${
+                  darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+                }`}
+              >
                 {subtopic}
               </span>
             ))}
           </div>
         )}
+      </div>
 
-        <div className={`rounded-lg p-3 text-sm ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
-          <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>💡 What I learned: </span>
-          {session.whatILearned}
+      {/* Metadata Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+        {/* Duration */}
+        <div className="flex items-center gap-2 text-sm">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            darkMode ? 'bg-blue-900/40' : 'bg-blue-50'
+          }`}>
+            <Clock className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} strokeWidth={2} />
+          </div>
+          <div className="min-w-0">
+            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Duration</p>
+            <p className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {formatDuration(session.duration)}
+            </p>
+          </div>
         </div>
 
-        {session.studyTechnique && (
-          <div className={`text-sm flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            🎯 Technique: <span className="font-medium">{session.studyTechnique}</span>
+        {/* Difficulty */}
+        <div className="flex items-center gap-2 text-sm">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            darkMode ? 'bg-purple-900/40' : 'bg-purple-50'
+          }`}>
+            <Target className={`w-4 h-4 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} strokeWidth={2} />
           </div>
-        )}
+          <div className="min-w-0">
+            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Difficulty</p>
+            <p className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {session.difficulty}
+            </p>
+          </div>
+        </div>
 
+        {/* Location */}
         {session.location && (
-          <div className={`text-sm flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            📍 {session.location}
+          <div className="flex items-center gap-2 text-sm">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              darkMode ? 'bg-emerald-900/40' : 'bg-emerald-50'
+            }`}>
+              <MapPin className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} strokeWidth={2} />
+            </div>
+            <div className="min-w-0">
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Location</p>
+              <p className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                {session.location}
+              </p>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="ml-13 mt-3 pt-3 border-t border-gray-100 flex items-center gap-4">
+      {/* What I Learned */}
+      <div className={`rounded-lg p-4 mb-3 ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+        <div className="flex items-start gap-2 mb-2">
+          <Lightbulb className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+            darkMode ? 'text-amber-400' : 'text-amber-600'
+          }`} strokeWidth={2} />
+          <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            What I learned
+          </p>
+        </div>
+        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {session.whatILearned}
+        </p>
+      </div>
+
+      {/* Study Technique (if exists) */}
+      {session.studyTechnique && (
+        <div className={`text-sm flex items-center gap-2 mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Technique:</span>
+          <span className="font-medium">{session.studyTechnique}</span>
+        </div>
+      )}
+
+      {/* Footer - Like Button */}
+      <div className={`pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}>
         <button
           onClick={() => onLike(session._id)}
-          className={`flex items-center gap-1 text-sm font-medium transition ${
+          className={`flex items-center gap-2 text-sm font-medium transition-colors ${
             hasLiked
               ? 'text-red-500 hover:text-red-600'
               : darkMode
-                ? 'text-gray-400 hover:text-red-500'
+                ? 'text-gray-400 hover:text-red-400'
                 : 'text-gray-500 hover:text-red-500'
           }`}
         >
-          <span className="text-lg">{hasLiked ? '❤️' : '🤍'}</span>
-          <span>{session.likes?.length || 0}</span>
+          <Heart 
+            className={`w-5 h-5 ${hasLiked ? 'fill-current' : ''}`} 
+            strokeWidth={2} 
+          />
+          <span>{session.likes?.length || 0} {session.likes?.length === 1 ? 'like' : 'likes'}</span>
         </button>
       </div>
     </div>

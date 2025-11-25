@@ -55,40 +55,40 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* on the left gradient background and the picture */}
-      <div className="hidden md:flex flex-1 bg-gradient-to-br from-purple-700 via-indigo-600 to-pink-500 justify-center items-center relative">
+      <div className="hidden md:flex flex-1 relative overflow-hidden">
+        {/* Background gradient image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/gradient.png')" }}
+        />
         
-        {/* glow blobs layered under the picture */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Indigo glow circle */}
-          <div className="absolute -top-24 -left-10 w-72 h-72 bg-indigo-400/40 blur-3xl rounded-full" />
-          {/* Pink glow circle */}
-          <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-400/40 blur-3xl rounded-full" />
-        </div>
+        {/* Content overlay */}
+        <div className="relative z-10 w-full flex justify-center items-center">
+          {/* on the left side logo + picture + tagline */}
+          <div className="flex flex-col items-center text-center space-y-6 max-w-sm">
+            {/* Page title on the left side */}
+            <h1 className="text-3xl font-semibold text-white">StudBuds</h1>
 
-        {/* on the left side logo + picture + tagline */}
-        <div className="relative z-10 flex flex-col items-center text-center space-y-6 max-w-sm">
-          {/* Page title on the left side */}
-          <h1 className="text-3xl font-semibold text-white">StudBuds</h1>
+            {/*  image */}
+            <img
+              src="/study.svg" // takes in image from public
+              alt="Studying pic"
+              className="w-72 h-72 object-contain drop-shadow-xl"
+            />
 
-          {/*  image */}
-          <img
-            src="/study.svg" // takes in image from public
-            alt="Studying pic"
-            className="w-72 h-72 object-contain drop-shadow-xl"
-          />
+            {/* Text under picture*/}
+            <div className="space-y-2 text-white">
+              {/* Subheading */}
+              <p className="text-lg font-semibold">
+                Find your study crew. Stay accountable.
+              </p>
 
-          {/* Text under picture*/}
-          <div className="space-y-2 text-white">
-            {/* Subheading */}
-            <p className="text-lg font-semibold">
-              Find your study crew. Stay accountable.
-            </p>
-
-            {/* Supporting description text */}
-            <p className="text-xs text-indigo-100 max-w-xs mx-auto">
-              StudBuds helps you connect with motivated students, match by
-              major or classes, and conquer your workload together.
-            </p>
+              {/* Supporting description text */}
+              <p className="text-xs text-indigo-100 max-w-xs mx-auto">
+                StudBuds helps you connect with motivated students, match by
+                major or classes, and conquer your workload together.
+              </p>
+            </div>
           </div>
         </div>
       </div>

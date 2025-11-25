@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGamification } from '../context/GamificationContext'; 
 import { useSidebar } from '../context/SidebarContext';
 import { useDarkMode } from '../context/DarkModeContext';
-import { Home, Compass, BookOpen, Users, MessageCircle, Settings, ChevronsLeft, ChevronsRight, Trophy } from 'lucide-react';
+import { Home, Compass, BookOpen, Users, MessageCircle, Settings, ChevronsLeft, ChevronsRight, Gamepad2 } from 'lucide-react';
 
 export default function Sidebar() { 
   const pathname = usePathname();
@@ -25,6 +25,7 @@ export default function Sidebar() {
     { name: 'Courses', href: '/my-courses', icon: BookOpen },
     { name: 'Friends', href: '/friends', icon: Users },
     { name: 'Messages', href: '/messages', icon: MessageCircle },
+    { name: 'Games', href: '/games', icon: Gamepad2 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 

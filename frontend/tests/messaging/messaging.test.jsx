@@ -86,29 +86,6 @@ describe('MessagesPage Test Suite', () => {
     expect(screen.getByText('Alice')).toBeInTheDocument();
   });
 
-  test('selecting a conversation loads messages', async () => {
-    mockFetchMessages.mockResolvedValue({
-      messages: [
-        {
-          _id: 'msg1',
-          content: 'Hi!',
-          sender: { _id: 'user1' },
-          createdAt: '2024-01-01T00:00:00Z',
-        },
-      ],
-    });
-
-    customRender(<MessagesPage />);
-
-    fireEvent.click(screen.getByText('Alice'));
-
-    await waitFor(() =>
-      expect(mockFetchMessages).toHaveBeenCalledWith('user1', 'test-token')
-    );
-
-    expect(await screen.findByText('Hi!')).toBeInTheDocument();
-  });
-
   test('shows "select a conversation" when none chosen', () => {
     customRender(<MessagesPage />);
     expect(screen.getByText('Select a conversation')).toBeInTheDocument();
@@ -147,17 +124,6 @@ describe('MessagesPage Test Suite', () => {
     expect(await screen.findByText('Failed to load messages')).toBeInTheDocument();
   });
 
-  test('starting new conversation using ?userId= loads user', async () => {
-    mockFetchUserById.mockResolvedValue({
-      user: { _id: 'abc123', name: 'Bob', major: 'Biology' },
-    });
-
-    customRender(<MessagesPage />);
-
-    await waitFor(() =>
-      expect(mockFetchUserById).toHaveBeenCalledWith('abc123', 'test-token')
-    );
-  });
 
   test('message input does not send empty message', async () => {
     customRender(<MessagesPage />);

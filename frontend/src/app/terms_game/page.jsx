@@ -376,14 +376,14 @@ export default function TermsGamePage() {
                   onClick={() => handleMark(true)}
                   className="flex-1 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-xs font-semibold shadow-md"
                 >
-                  I got it right ✅
+                  I got it right 
                 </button>
                 {/* Button for I got it wrong */}
                 <button
                   onClick={() => handleMark(false)}
                   className="flex-1 py-2.5 rounded-full bg-rose-500 hover:bg-rose-400 text-xs font-semibold shadow-md"
                 >
-                  I got it wrong ❌
+                  I got it wrong 
                 </button>
               </div>
             )}

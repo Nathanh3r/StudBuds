@@ -28,7 +28,6 @@ const customJestConfig = {
 
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
 
-  // Increase timeout for async operations
   testTimeout: 10000,
 };
 

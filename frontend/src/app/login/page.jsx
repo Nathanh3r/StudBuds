@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"; // router for navigation to login
 import Link from "next/link"; // Link for clients navigation to signup page.
 import { useAuth } from "../context/AuthContext"; // Custom context hook to access login function.
 
-/* MAIN LOGIN PAGE */
+/* main page */
 export default function LoginPage() {
   /* Email: stores the user input for the email field */
   const [email, setEmail] = useState("");

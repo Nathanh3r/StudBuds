@@ -225,7 +225,6 @@ export async function updateLoginStreak(userId) {
 
         // Award daily login XP
         const xpResult = await awardXP(userId, "DAILY_LOGIN");
-        console.log("💎 Daily login XP awarded:", xpResult);
       } else if (daysDiff > 1) {
         // Streak broken - reset to 1
         user.gamification.streak.count = 1;
@@ -233,7 +232,6 @@ export async function updateLoginStreak(userId) {
         await awardXP(userId, "DAILY_LOGIN");
       }
     } else {
-      console.log("🎉 First login! Starting streak at 1");
       user.gamification.streak.count = 1;
 
       await awardXP(userId, "DAILY_LOGIN");

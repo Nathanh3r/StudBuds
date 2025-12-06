@@ -4,10 +4,8 @@ import '@testing-library/jest-dom';
 import StudyGroups from '../../src/app/components/course-detail/StudyGroups';
 import { useStudyGroups } from '../../src/app/hooks/useCourseActivity';
 
-// ✅ Mock the study group hook so we control its return values
 jest.mock('../../src/app/hooks/useCourseActivity');
 
-// ✅ Mock DarkModeContext so useDarkMode() never returns undefined
 jest.mock('../../src/app/context/DarkModeContext', () => ({
   useDarkMode: () => ({
     darkMode: false,

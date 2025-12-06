@@ -1,9 +1,8 @@
-// tests/dashboard/dashboard.page.test.jsx
-
 import { render, screen } from "@testing-library/react";
 import DashboardPage from "../../src/app/dashboard/page";
 
-// ---- Mocks for context hooks ----
+// Mock Context Hooks allows us to fully control data returned to component
+
 
 const mockUseAuth = jest.fn();
 jest.mock("../../src/app/context/AuthContext", () => ({
@@ -20,7 +19,9 @@ jest.mock("../../src/app/context/DarkModeContext", () => ({
   useDarkMode: () => mockUseDarkMode(),
 }));
 
-// ---- Mocks for data hooks ----
+
+// Mock Data Hooks isolates rendering logic from backend API behavior
+
 
 const mockUseClasses = jest.fn();
 jest.mock("../../src/app/hooks/useClasses", () => ({
@@ -32,9 +33,10 @@ jest.mock("../../src/app/hooks/useStudyGroups", () => ({
   useStudyGroups: (...args) => mockUseStudyGroups(...args),
 }));
 
-// ---- Component mocks ----
+// Mock Large Child Components we use minimal HTML to assert rendering
 
-// ProtectedPage: just render children, tagged for testing
+
+/** Wraps children so we can assert that protected routes render successfully */
 jest.mock("../../src/app/components/ProtectedPage", () => ({
   __esModule: true,
   default: ({ children }) => (
@@ -42,7 +44,7 @@ jest.mock("../../src/app/components/ProtectedPage", () => ({
   ),
 }));
 
-// PageHeader: we don't care about its UI, just render a marker
+/** Minimal PageHeader rendering to allow text assertions */
 jest.mock("../../src/app/components/PageHeader", () => ({
   __esModule: true,
   default: ({ title, subtitle }) => (
@@ -53,13 +55,13 @@ jest.mock("../../src/app/components/PageHeader", () => ({
   ),
 }));
 
-// LoadingScreen: simple marker
+/** Render a loading marker for async state */
 jest.mock("../../src/app/components/LoadingScreen", () => ({
   __esModule: true,
   default: () => <div>Loading...</div>,
 }));
 
-// StatsCard: simple stub
+/** Dumb StatsCard stub  we only check values, not styling/layout */
 jest.mock("../../src/app/components/StatsCard", () => ({
   __esModule: true,
   default: ({ stat }) => (
@@ -67,7 +69,7 @@ jest.mock("../../src/app/components/StatsCard", () => ({
   ),
 }));
 
-// DashboardCourseCard: show course name so we can assert
+/** Render enrolled courses so testing can count them */
 jest.mock("../../src/app/components/DashboardCourseCard", () => ({
   __esModule: true,
   default: ({ course }) => (
@@ -77,7 +79,7 @@ jest.mock("../../src/app/components/DashboardCourseCard", () => ({
   ),
 }));
 
-// EmptyState: generic stub, we’ll only assert that it renders
+/** Used for no-data states */
 jest.mock("../../src/app/components/EmptyState", () => ({
   __esModule: true,
   default: ({ title }) => (
@@ -87,17 +89,18 @@ jest.mock("../../src/app/components/EmptyState", () => ({
   ),
 }));
 
+
+
+// main tests
 describe("DashboardPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Default: user is logged in
     mockUseAuth.mockReturnValue({
       user: { name: "John Doe" },
       token: "fake-token",
     });
 
-    // Default: gamification stats loaded
     mockUseGamification.mockReturnValue({
       stats: {
         streak: 3,
@@ -109,18 +112,15 @@ describe("DashboardPage", () => {
       loading: false,
     });
 
-    // Default: light mode
     mockUseDarkMode.mockReturnValue({
       darkMode: false,
     });
 
-    // Default: no classes yet
     mockUseClasses.mockReturnValue({
       classes: [],
       loading: false,
     });
 
-    // Default: no study groups yet, no error
     mockUseStudyGroups.mockReturnValue({
       groups: [],
       loading: false,
@@ -128,8 +128,12 @@ describe("DashboardPage", () => {
     });
   });
 
+
+
+  // Test 1 — Loading State Handling
+
   test("shows LoadingScreen when any data is loading", () => {
-    // Simulate classes still loading
+    // Override default to simulate pending API response
     mockUseClasses.mockReturnValue({
       classes: [],
       loading: true,
@@ -137,28 +141,38 @@ describe("DashboardPage", () => {
 
     render(<DashboardPage />);
 
+    // Assert loading UI is visible
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
+
+
+ 
+  // Test 2 — Default Empty Dashboard Behavior
 
   test("renders dashboard layout, headers, and empty states when no data", () => {
     render(<DashboardPage />);
 
-    // Wrapped in ProtectedPage
+    // Ensure protected route wrapper is active
     expect(screen.getByTestId("protected-page")).toBeInTheDocument();
 
-    // Page header exists
+    // Ensure header rendered
     expect(screen.getByTestId("page-header")).toBeInTheDocument();
 
-    // Main section headings
+    // Ensure important section headings
     expect(screen.getByText("Your Courses")).toBeInTheDocument();
     expect(screen.getByText("Upcoming Study Sessions")).toBeInTheDocument();
 
-    // Two EmptyState components: one for courses, one for study sessions
+    // Empty state should appear for both sections
     const emptyStates = screen.getAllByTestId("empty-state");
     expect(emptyStates.length).toBeGreaterThanOrEqual(2);
   });
 
+
+
+  // Test 3 — Rendering Limited Course Cards
+
   test("renders course cards when classes are present", () => {
+    // Override default to simulate 3 enrolled classes
     mockUseClasses.mockReturnValue({
       classes: [
         { _id: "1", name: "CS 120B" },
@@ -170,10 +184,13 @@ describe("DashboardPage", () => {
 
     render(<DashboardPage />);
 
-    // DashboardCourseCard should be rendered for at most 2 courses (slice(0, 2))
     const cards = screen.getAllByTestId("dashboard-course-card");
     expect(cards.length).toBe(2);
   });
+
+
+ 
+  // Test 4 — Study Groups Rendering
 
   test("renders study group card when there are upcoming study sessions", () => {
     mockUseStudyGroups.mockReturnValue({
@@ -193,11 +210,16 @@ describe("DashboardPage", () => {
 
     render(<DashboardPage />);
 
-    expect(
-      screen.getByText("Midterm Review Session")
-    ).toBeInTheDocument();
+    // Session title visible
+    expect(screen.getByText("Midterm Review Session")).toBeInTheDocument();
+
+    // Session contains link/button
     expect(screen.getByText("View Session")).toBeInTheDocument();
   });
+
+
+
+  // Test 5 — Error Rendering
 
   test("shows error message when study groups hook returns an error", () => {
     mockUseStudyGroups.mockReturnValue({
@@ -208,8 +230,7 @@ describe("DashboardPage", () => {
 
     render(<DashboardPage />);
 
-    expect(
-      screen.getByText("Failed to load groups")
-    ).toBeInTheDocument();
+    // Assert visual error indicator is present
+    expect(screen.getByText("Failed to load groups")).toBeInTheDocument();
   });
 });

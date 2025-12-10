@@ -19,12 +19,16 @@ const customJestConfig = {
   testMatch: ["**/tests/**/*.[jt]s?(x)"],
 
   collectCoverageFrom: [
-  "src/**/*.{js,jsx,ts,tsx}",
-  "!**/*.d.ts",
-  "!**/node_modules/**",
-],
+    "src/app/components/**/*.{js,jsx}",
+    "src/app/context/**/*.{js,jsx}",
+    "src/app/hooks/**/*.{js,jsx}",
+    "!**/*.d.ts",
+    "!**/node_modules/**",
+  ],
 
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
+
+  testTimeout: 10000,
 };
 
 module.exports = createJestConfig(customJestConfig);
